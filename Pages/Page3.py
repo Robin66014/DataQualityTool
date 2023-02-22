@@ -6,7 +6,7 @@ st.sidebar.markdown("# Page 345")
 
 
 if st.button("Next page"):
-    switch_page("Page3")
+    switch_page("App")
 
 if st.button("Previous page"):
-    switch_page("app")
+    switch_page("Page2")

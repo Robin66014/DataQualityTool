@@ -1,8 +1,9 @@
 import pandas as pd
 import sortinghatinf #algorithm to predict the feature type out og [numeric, categorical, datetime, sentence,
-# url, embedded-number, list, not-generalizable, context-specific]
+from deepchecks.tabular import Dataset
 
-data = pd.read_csv('datasets\Iris.csv')
+
+#data = pd.read_csv('datasets\Iris.csv')
 def obtain_feature_type_table(df):
     """"Function to predict the feature types
     INPUT: pandas DataFrame
@@ -11,8 +12,34 @@ def obtain_feature_type_table(df):
     """
     #print('df.columns:', list(df.columns))
     predicted_feature_types = sortinghatinf.get_expanded_feature_types(df)
-    print(predicted_feature_types)
-    new_df = pd.DataFrame(columns=list(df.columns))
-    new_df.loc[len(new_df)] = predicted_feature_types
+    feature_type_table = pd.DataFrame(columns=list(df.columns))
+    feature_type_table.loc[len(feature_type_table)] = predicted_feature_types
 
-    return new_df
+    return feature_type_table
+
+def createDatasetObject(df, featureTypeTable, label):
+    feature_types = featureTypeTable.loc[len(featureTypeTable)-1, :].values.tolist()
+    column_names = featureTypeTable.columns.values.tolist()
+
+    #obtain catgeorical feature names
+    categorical_features = []
+    index = 0
+    for feature in feature_types:
+        if feature == 'categorical' and column_names[index] != label:
+            categorical_features.append(column_names[index])
+        index += 1
+
+    #date_name = #todo hoe date_time en ID kolom meenemen in Dataset object? Gewoon weglaten in het begin?
+
+    if label != 'NOT APPLICABLE':
+        ds = Dataset(df, label=label, cat_features=categorical_features)
+    else: #no label exists in dataset
+        ds = Dataset(df, cat_features=categorical_features)
+
+    return ds
+
+
+#df = obtain_feature_type_table(data)
+
+#print(data.head())
+

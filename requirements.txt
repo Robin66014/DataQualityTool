@@ -1,0 +1,6 @@
+openpyxl
+pandas
+deepchecks
+streamlit
+streamlit_extras
+scikit-learn
