@@ -6,19 +6,15 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
+import numpy as np
+import pandas as pd
+from ydata_profiling import ProfileReport
+
 data = pd.read_csv('datasets\Iris.csv')
 
-adult_dataset = Dataset(adult_df, cat_features=['workclass', 'education'])
-check = MixedDataTypes()
-result = check.run(adult_dataset)
-print('@@@@', type(result)) #returns check_result.CheckResult item
-#result = IsSingleValue().run(dataset)
-#result.save_as_html()
-res = result.value #returns dict
-print('@@@', type(res))
-#checkJson = result.to_json()
-#checkJson = check.reduce_output()
-#print(checkJson)
 
-
-print(lst)
+df = pd.DataFrame(np.random.rand(10, 3), columns=["a", "b", "c"])
+profile = ProfileReport(df, title="Profiling Report")
+json_data = profile.to_json()
+print(json_data)
+profile.to_file("your_report.json")

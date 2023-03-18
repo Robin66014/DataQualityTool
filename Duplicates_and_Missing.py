@@ -8,10 +8,11 @@ from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
 data = pd.read_csv('datasets\Iris.csv')
 #dataset = Dataset(data, label = 'Species')
-amount_of_columns = float('inf')
-amount_of_samples = float('inf')
+amount_of_columns = 999999999
+amount_of_samples = 999999999
 
 def missing_values(dataset):
+    """"Checks the amount of missing values, and the types of missing values: numpy.NaN, None, '', ..."""
     checkPercentOfNulls = deepchecks.tabular.checks.PercentOfNulls(n_samples = amount_of_samples) #percentage of NA ('np.nan', 'None'...)
     resultPercentOfNulls = checkPercentOfNulls.run(dataset)
     checkMixedNulls = deepchecks.tabular.checks.MixedNulls(n_samples = amount_of_samples)
@@ -45,7 +46,8 @@ def missing_values(dataset):
     #append column to df with total missingness per column
     missing_values_df['Potential total missingness percentage in column'] = total_missing_in_column
     #TODO: uitleg dat line hierboven ook missingness in de vorm van '' meeneemt buiten NA waardes als numpy.NaN
-    missing_values_df.rename(columns={"Percent of nulls in sample": "Percent missing (NA)"}, inplace=True)
+    #TODO: n_top_columns variabel maken (door gebruiker aanpasbaar, of als het meer dan 20 kolommen zijn dan maar 10 showen oid)
+    missing_values_df.rename(columns={"Percent of nulls in sample": "Percent m issing (NA)"}, inplace=True)
 
     #if there are no 'potential' missing values, the column isn't necessary
     if missing_values_df['Percent missing (NA)'].equals(missing_values_df['Potential total missingness percentage in column']):
@@ -55,6 +57,7 @@ def missing_values(dataset):
 
 
 def duplicates(dataset):
+    """"Checks whether any duplicate rows exist and displays the row numbers that are duplicate in a table"""
     checkDataDuplicates = deepchecks.tabular.checks.DataDuplicates(n_to_show=amount_of_columns, n_samples=amount_of_samples)
     resultDataDuplicates = checkDataDuplicates.run(dataset)
 
