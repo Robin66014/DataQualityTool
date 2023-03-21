@@ -5,10 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/bias_and_fairness.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/label_purity.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/outliers_and_correlations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/DataQualityTool.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/DataQualityTool.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Duplicates_and_Missing.py" beforeDir="false" afterPath="$PROJECT_DIR$/Duplicates_and_Missing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Type_integrity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Type_integrity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testingFile.py" beforeDir="false" afterPath="$PROJECT_DIR$/testingFile.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,28 +38,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/robin/OneDrive/Documenten/GitHub/DataQualityTool&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/Users/robin/OneDrive - TU Eindhoven/Documents Robinkaelen Onedrive/Documenten/GitHub/DataQualityTool",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\robin\OneDrive\Documenten\GitHub\DataQualityTool" />
       <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents\Data Science in Engineering\2022-2023\Graduation project\packaging_tutorial\src\example_package_Robin66014" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.Type_integrity">
+  <component name="RunManager">
     <configuration name="Duplicates_and_Missing" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="DataQualityTool" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -170,8 +172,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.Type_integrity" />
         <item itemvalue="Python.dashapp" />
+        <item itemvalue="Python.Type_integrity" />
         <item itemvalue="Python.usaairquality" />
         <item itemvalue="Python.testingFile" />
         <item itemvalue="Python.Duplicates_and_Missing" />
@@ -192,7 +194,8 @@
       <workItem from="1677152234711" duration="3270000" />
       <workItem from="1679054010861" duration="1537000" />
       <workItem from="1679061012870" duration="7680000" />
-      <workItem from="1679132289141" duration="4569000" />
+      <workItem from="1679132289141" duration="11476000" />
+      <workItem from="1679312983452" duration="20653000" />
     </task>
     <servers />
   </component>
@@ -223,10 +226,12 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/DataQualityTool$app.coverage" NAME="app Coverage Results" MODIFIED="1674055567279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/DataQualityTool$dashapp.coverage" NAME="dashapp Coverage Results" MODIFIED="1679054232473" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DataQualityTool$dashapp.coverage" NAME="dashapp Coverage Results" MODIFIED="1679314085150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DataQualityTool$testingFile.coverage" NAME="testingFile Coverage Results" MODIFIED="1677067104613" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/DataQualityTool$Type_integrity.coverage" NAME="Type_integrity Coverage Results" MODIFIED="1679138104588" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DataQualityTool$outliers_and_correlations.coverage" NAME="outliers_and_correlations Coverage Results" MODIFIED="1679316731007" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DataQualityTool$Type_integrity.coverage" NAME="Type_integrity Coverage Results" MODIFIED="1679140568683" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DataQualityTool$usaairquality.coverage" NAME="usaairquality Coverage Results" MODIFIED="1679054216998" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../ydata-profiling-master/ydata-profiling-master/examples/usaairquality" />
+    <SUITE FILE_PATH="coverage/DataQualityTool$label_purity.coverage" NAME="label_purity Coverage Results" MODIFIED="1679411717738" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DataQualityTool$Structured_checks.coverage" NAME="Duplicates_and_Missing Coverage Results" MODIFIED="1677058952466" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DataQualityTool$DataTypeInference.coverage" NAME="DataTypeInference Coverage Results" MODIFIED="1675252319352" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>

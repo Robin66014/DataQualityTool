@@ -82,12 +82,12 @@ def string_mismatch(dataset):
 #TODO: (als je dit nog wilt) String length out of bounds
 
 
-
-#data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}
-dataframe = pd.DataFrame({
-    'a': ['Deep', np.nan, 'deep', 'deep!'],
-    'b': [2, 3, 4, 8],
-    'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo'],
-    'd': ['a', 4, 'ploep', 'hoi'],
-})
-string_mismatch(dataframe)
+# #for testing purposes
+# #data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}
+# dataframe = pd.DataFrame({
+#     'a': ['Deep', np.nan, 'deep', 'deep!'],
+#     'b': [2, 3, 4, 8],
+#     'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo'],
+#     'd': ['a', 4, 'ploep', 'hoi'],
+# })
+# string_mismatch(dataframe)
