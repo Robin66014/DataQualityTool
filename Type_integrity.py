@@ -97,19 +97,19 @@ def string_mismatch(dataset):
 #for testing purposes
 #data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}
 
-dataframe = pd.DataFrame({
-    'a': ['deep', np.nan, 'Deep', 'deep!!', '?'],
-    'b': [2, 3, 4, 8, '!'],
-    'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo', '5'],
-    'd': ['a', 4, 'ploep', 'hoi', '#'],
-})
-
 # dataframe = pd.DataFrame({
-#     'a': ['Deep', np.nan, 'deep', 'deep!'],
-#     'b': [2, 3, 4, 8],
-#     'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo'],
-#     'd': ['a', 4, 'ploep', 'hoi'],
+#     'a': ['deep', np.nan, 'Deep', 'deep!!', '?'],
+#     'b': [2, 3, 4, 8, '!'],
+#     'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo', '5'],
+#     'd': ['a', 4, 'ploep', 'hoi', '#'],
 # })
-
-val = string_mismatch(dataframe)
-print(val)
+#
+# # dataframe = pd.DataFrame({
+# #     'a': ['Deep', np.nan, 'deep', 'deep!'],
+# #     'b': [2, 3, 4, 8],
+# #     'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo'],
+# #     'd': ['a', 4, 'ploep', 'hoi'],
+# # })
+#
+# val = string_mismatch(dataframe)
+# print(val)

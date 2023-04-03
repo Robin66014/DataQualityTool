@@ -57,20 +57,37 @@ def identifier_label_correlation(dataset):
 
     return None
 
-def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.8):
+def feature_importance(dataset):
+    #TODO: maken met random forest
+    return None
+
+def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.90):
     """"Function that checks for outliers samples (jointly across all features) using
      the LoOP algorithm: (https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf)"""
 
-    checkOutlier = deepchecks.tabular.checks.OutlierSampleDetection(nearest_neighbors_percent=nearest_neighors_percent,
-                                                                         n_samples=amount_of_samples, timeout = 20, n_to_show = amount_of_samples) #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
-    #TODO: timeout warning toevoegen, nu geeft ie gewoon een error
-    resultOutlier = checkOutlier.run(dataset)
-    result = resultOutlier.display[1] #obtain dataframe with probability scores
-    #TODO: filteren van dataframe loskoppelen van functie, anders moet het steeds herberekend worden als de callback aan deze functie wordt gekoppeld
-    result_filtered = result[result['Outlier Probability Score'] > threshold] #obtain only the outliers that have a probability higher than the desired threshold
-    amount_of_outliers = result_filtered.shape[0]
+    try:
+        checkOutlier = deepchecks.tabular.checks.OutlierSampleDetection(nearest_neighbors_percent=nearest_neighors_percent,
+                                                                         n_samples=10000, timeout = 20, n_to_show = amount_of_samples) #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
+        #TODO: timeout warning toevoegen, nu geeft ie gewoon een error
+        resultOutlier = checkOutlier.run(dataset)
+        result = resultOutlier.display[1] #obtain dataframe with probability scores
+        row_numbers = result.index
+        result.insert(0, 'Row number', row_numbers)
+        max_prob_score = result['Outlier Probability Score'].max()
 
-    return result_filtered, amount_of_outliers
+        #TODO: filteren van dataframe loskoppelen van functie, anders moet het steeds herberekend worden als de callback aan deze functie wordt gekoppeld
+        result_filtered = result[result['Outlier Probability Score'] > threshold] #obtain only the outliers that have a probability higher than the desired threshold
+
+        amount_of_outliers = 0
+        if result_filtered.empty:
+            result_filtered = pd.DataFrame({"Message": ["No outliers with a probability score higher than {}, The highest probability found is: {}".format(threshold, max_prob_score)]})
+        else:
+            amount_of_outliers = result_filtered.shape[0]
+
+        return result_filtered, amount_of_outliers
+
+    except Exception as e:
+        return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR": [e]}), None
 
 
 ## for testing purposes
@@ -81,5 +98,9 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.8)
 #     'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo'],
 #     'd': ['a', 4, 'ploep', 'hoi'],
 # })
+# zero_data = np.zeros(shape=(100,100))
+# ds = pd.DataFrame(zero_data)
 # ds = adult.load_data(as_train_test=False)
-# outlier_detection(ds)
+# res, amount = feature_feature_correlation(ds)
+# print(res)
+#print(amount)

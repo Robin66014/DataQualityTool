@@ -147,6 +147,7 @@ def run_checks(n_clicks, df_json):#, n, target):
     if n_clicks >= 1: #run checks button clicked
         df = pd.DataFrame(df_json) #deserialize JSON string stored in web browser
 
+        #TODO: convert to Deepchecks datasets
         #Running of the checks
         df_missing_values = duplicates_and_missing.missing_values(df)
         df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
