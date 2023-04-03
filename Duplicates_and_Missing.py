@@ -43,6 +43,7 @@ def missing_values(dataset):
     #TODO: potentieel extra kolommen expandable maken + totale getal missing values kloppend maken
     for key, value in myDict.items():
         missing_values_df[key] = value
+
     #append column to df with total missingness per column
     missing_values_df['Potential total missingness percentage in column'] = total_missing_in_column
     #TODO: uitleg dat line hierboven ook missingness in de vorm van '' meeneemt buiten NA waardes als numpy.NaN

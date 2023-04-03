@@ -38,9 +38,12 @@ def conflicting_labels(dataset):
     #percentage = round(resultConflictingLabels.value[0], 3) #pandas dataframe with correlation values
     result = resultConflictingLabels.value
     percentage = round(result.get('percent'), 6)
-    resultDF = resultConflictingLabels.display[1]
-    #print(resultDF)
-    return resultDF
+    if len(result['samples_indices']) == 0:
+        resultDF = pd.DataFrame({"Message": ["No conflicting labels encountered"]})
+    else:
+        resultDF = resultConflictingLabels.display[1]
+
+    return resultDF, percentage
 
 
 def wrong_label(dataset):
@@ -50,11 +53,12 @@ def wrong_label(dataset):
     from cleanlab.classification import CleanLearning
     from sklearn.linear_model import LogisticRegression
     from sklearn.preprocessing import LabelEncoder
-
+    #TODO: problem; string valus need to be encoded for models that cleanlab uses
 
     #labels = [np.where(np.array(list(dict.fromkeys(labels))) == e)[0][0] for e in labels]
 
-    #TODO: problem; string valus need to be encoded for cleanlab to use
+
+
     # dataset_no_label = dataset.features_columns
     # labels = dataset.label_col.tolist()
     # encoded_labels = LabelEncoder().fit_transform(labels)
@@ -73,6 +77,15 @@ def wrong_label(dataset):
 #TODO: een functie maken waarin ik de class parity check (prediction accuracy per target group)
 
 from deepchecks.tabular.datasets.classification import adult
-ds = adult.load_data(as_train_test= False)
-
-conflicting_labels(ds)
+# ds = adult.load_data(as_train_test= False)
+# zero_data = np.zeros(shape=(100,5))
+# df = pd.DataFrame(zero_data)
+# df.iloc[0,4] = 1
+# df.iloc[0,3] = 1
+# df.iloc[0,2] = 1
+# df.iloc[0,1] = 1
+# df.iloc[0,1] = 1
+# ds = Dataset(df, label = 4)
+#
+# res = conflicting_labels(ds)
+# print(res)

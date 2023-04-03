@@ -20,7 +20,7 @@ from scipy.io.arff import loadarff
 # io.StringIO(decoded.decode('utf-8'))
 # print(df.head())
 df = pd.read_csv('datasets\data.csv')
-profile = ProfileReport(df, title="Profiling Report").
+profile = ProfileReport(df, title="Profiling Report")
 
 print(profile.html)
 #profile.to_file("your_report.html")

@@ -13,6 +13,9 @@ import settings
 import dash_mantine_components as dmc
 import duplicates_and_missing
 import type_integrity
+import outliers_and_correlations
+from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 import label_purity
 
 #df = pd.read_csv('datasets\Iris.csv')
@@ -54,7 +57,7 @@ app.layout = html.Div([
     html.Div(id='output-div'),
     # html.Div(id='dd-output-container'),
     html.Div(id='output-data-upload'),
-    html.Div(id='container-checks-button-pressed'),
+
 
 
 
@@ -91,22 +94,30 @@ def parse_contents(contents, filename, date):
         dcc.Dropdown(id="targetColumn", options=[{'label':'None', 'value':'None'}] + [{'label':x, 'value':x} for x in df.columns], value = 'None'),
         #html.Button(id='submit-button', children='Run checks'),
         html.Div(id='dd-output-container'),
+
+        #Feature type table
         dash_table.DataTable(
-            featureTypeTable.to_dict('records'),
+            id='table-dropdown',
+            data = featureTypeTable.to_dict('records'),
             columns = [{"name": i, "id": i, 'presentation': 'dropdown'} for i in featureTypeTable.columns],
             editable=True,
             dropdown={
                 i: {'options': [{'label': j, 'value': j} for j in
                                        sortingHatInf_datatypes]} for i in
                 featureTypeTable.columns},
-            style_table={
-                'overflowX': 'scroll'}
+            # style_table={
+            #     'overflowX': 'scroll'}
         ),
         html.Button('Run data quality checks', id='run-checks-button', n_clicks=0, style=button_style),
-        html.Hr(),  # horizontal line
-        html.H6('Dataset overview'),
-        html.P('Click the dataset to edit a cell, press the export button to download the edited dataset'),
 
+
+        html.Div(id='container-checks-button-pressed'),
+
+        #Dataset overview section
+        html.Hr(),  # horizontal line
+        html.H6('Dataset overview', style={'textAlign': 'center'}),
+        html.P('Click the dataset to edit a cell, press the EXPORT button to download the edited dataset',
+               style={'textAlign': 'center'}),
         dash_table.DataTable(
             df.to_dict('records'),
             [{'name': i, 'id': i} for i in df.columns],
@@ -139,44 +150,119 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             zip(list_of_contents, list_of_names, list_of_dates)]
         return children
 
+# @app.callback(
+#     Output('container-checks-button-pressed', 'children'),
+#     [Input('run-checks-button', 'n_clicks'), Input('table-dropdown', 'data')]
+# )
+# def run_checks(n_clicks, dtypes):#, n, target):
+#     if n_clicks >= 1: #run checks button clicked
+#         print(dtypes)
+#     return 'Hello' ##html.Div([])
+
+# @app.callback(
+#     Output('table-dropdown', 'editable'),
+#     [Input('table-dropdown', 'data'),
+#      Input('stored-data', 'data')])
+# def infer_datatypes(dtypes, data):
+#     sdf = data
+#     decoded = base64.b64decode(data)
+#     df = pd.read_csv(
+#         io.StringIO(decoded.decode('utf-8')))
+#     current_dtypes = obtain_feature_type_table(df)
+#     current_dtypes = current_dtypes.columns
+#     print('dtypes: ', dtypes)
+#     print('current_dtypes: ', current_dtypes)
+#     # if dtypes is None or dtypes == [current_dtypes]:
+#     #     raise PreventUpdate
+#     # dtypes = dtypes[0]
+#     # ctx = dash.callback_context
+#     # last_callback = ctx.triggered[0]['prop_id'].split('.')[0]
+#     # if last_callback == 'datatable':
+#     #     return [current_dtypes]
+#     # if len(dtypes) != len(current_dtypes):
+#     #     dtypes = {k: dtypes[k] for k in dtypes.keys() & current_dtypes.keys()}
+#     # sdf.update_dtypes(dtypes)
+#     return True#[sdf.get_dtypes()]
+
+    # def get_dtypes(data):
+    #     return data.dtypes.apply(lambda x: x.name).to_dict()
+
+
 @app.callback(
     Output('container-checks-button-pressed', 'children'),
-    [Input('run-checks-button', 'n_clicks'), Input('stored-data', 'data')]
+    [Input('run-checks-button', 'n_clicks'),
+     Input('stored-data', 'data'),
+     Input('table-dropdown', 'data'),
+     Input('targetColumn', 'value')]
 )
-def run_checks(n_clicks, df_json):#, n, target):
+def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
     if n_clicks >= 1: #run checks button clicked
         df = pd.DataFrame(df_json) #deserialize JSON string stored in web browser
+        ds = createDatasetObject(df, dtypes, target_column)
+        #TODO: convert to Deepchecks datasets, keep in mind length error
 
-        #TODO: convert to Deepchecks datasets
         #Running of the checks
+        #duplicates & missing
         df_missing_values = duplicates_and_missing.missing_values(df)
+        #TODO: duplicates check --> ydata profiling?
+
+        #type integrity checks
         df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
         df_mixed_data_types = type_integrity.mixed_data_types(df)
-        #df_special_characters = type_integrity.special_characters(df)
-        #df_string_mismatch = type_integrity.string_mismatch(df)
+        df_special_characters = type_integrity.special_characters(df)
+        df_string_mismatch = type_integrity.string_mismatch(df)
 
-        #TODO: duplicates check
-        return html.Div([dmc.Accordion(
-            children=[
-                dmc.AccordionItem(
-                    [
-                        dmc.AccordionControl("Duplicates & missing values ({})".format(36)),
-                        dmc.AccordionPanel([dash_table.DataTable(df_missing_values.to_dict('records')),
-                            "Colors, fonts, shadows and many other parts are customizable to fit your design needs"]
-                        ),
+        #outliers & correlations
+        df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
+        df_outliers = outliers_and_correlations.outlier_detection(ds)
+        if target_column != 'None': #target column supplied
+            df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
 
-                    ],
-                    value="duplicatesandmissing",
-                ),
+            #label purity checks
+            df_class_imbalance = label_purity.class_imbalance(ds)
+            df_conflicting_labels, percent_conflicting = label_purity.conflicting_labels(ds)
+        else: #no target column selected
+            df_feature_label_correlation = pd.DataFrame({
+                "Message": ["This check is not applicable as there is no target column selected"]})
+            df_conflicting_labels = pd.DataFrame(
+                {"Message": ["This check is not applicable as there is no target column selected"]})
+            percent_conflicting = 0
+            df_class_imbalance = pd.DataFrame(
+                {"Message": ["This check is not applicable as there is no target column selected"]})
+
+        return html.Div([#Data issue / check results section
+                html.Hr(),  # horizontal line
+                html.H6('Profiling report and issue overview', style={'textAlign':'center'}),
+                html.P('This section contains a profling report showing important information'
+                       'regarding ML issues found in the dataset', style={'textAlign':'center'}),
+                dmc.Accordion(
+                children=[
+                    dmc.AccordionItem(
+                        [
+                            dmc.AccordionControl("Duplicates & missing values ({})".format(36)),
+                            dmc.AccordionPanel([dash_table.DataTable(df_missing_values.to_dict('records')), #TODO: add duplicates
+                                "Colors, fonts, shadows and many other parts are customizable to fit your design needs"]
+                            ),
+
+                        ],
+                        value="duplicatesandmissing",
+                    ),
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl("Type integrity ({})".format(36)),
-                        dmc.AccordionPanel([
-                            # dash_table.DataTable(df_amount_of_diff_values.to_dict('records')),
-                            #                 dash_table.DataTable(df_mixed_data_types.to_dict('records')),
-                            #                 dash_table.DataTable(df_special_characters.to_dict('records')),
-                            #                 dash_table.DataTable(df_string_mismatch.to_dict('records')),
-                            "Colors, fonts, shadows and many other parts are customizable to fit your design needs"]
+                        dmc.AccordionPanel([html.H6('Amount of distinct values per column', style={'textAlign':'center'}),
+                                            html.P('Checks the amount of different values for each column',
+                                                    style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_amount_of_diff_values.to_dict('records')),
+                                            #dash_table.DataTable(df_mixed_data_types.to_dict('records')), #TODO: fix error
+                                            html.H6("Special characters check", style={'textAlign': 'center'}),
+                                            html.P("checks for characters like '?!$^&#' ", style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_special_characters.to_dict('records')),
+                                            html.H6("String mismatch / cell entity check",
+                                                    style={'textAlign': 'center'}),
+                                            html.P("Checks for strings that have the same base form, like 'red', 'Red', 'RED!' (base form 'red' )",
+                                                   style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_string_mismatch.to_dict('records'))]
                         ),
                     ],
                     value="typeintegrity",
@@ -184,9 +270,27 @@ def run_checks(n_clicks, df_json):#, n, target):
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl("Outliers & correlations ({})".format(36)),
-                        dmc.AccordionPanel(
-                            "Configure temp appearance and behavior with vast amount of settings or overwrite any part of "
-                            "component styles "
+                        dmc.AccordionPanel([html.H6("Outlier samples check",
+                                                    style={'textAlign': 'center'}),
+                                            html.P("Function that checks for outliers samples (jointly across all features) using "
+                                                   "the LoOP algorithm: (https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf)",
+                                                   style={'textAlign': 'center'}),
+                                            #dash_table.DataTable(df_outliers.to_dict('records'))  #TODO: fix tuple error,
+                                            html.H6("Feature-feature correlation check",
+                                                    style={'textAlign': 'center'}),
+                                            html.P("computes the correlation between each feature pair;"
+                                                   " Methods to calculate for each feature label pair:"
+                                                   " numerical-numerical: Pearson’s correlation coefficient"
+                                                   " numerical-categorical: Correlation ratio"
+                                                   " categorical-categorical: Symmetric Theil’s U",
+                                                   style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_feature_feature_correlation.to_dict('records')), #TODO: put column names on rows as well
+                                            #TODO add figure
+                                            html.H6("Feature-label correlation check", style={'textAlign': 'center'}),
+                                            html.P("Computes the correlation between each feature and the label, "
+                                                   "in a similar fashion as the feature-feature correlation",
+                                                   style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_feature_label_correlation.to_dict('records'))]
                         ),
                     ],
                     value="outliersandcorrelations",
@@ -194,9 +298,18 @@ def run_checks(n_clicks, df_json):#, n, target):
                 dmc.AccordionItem(
                     [
                         dmc.AccordionControl("Label purity ({})".format(36)),
-                        dmc.AccordionPanel(
-                            "Configure temp appearance and behavior with vast amount of settings or overwrite any part of "
-                            "component styles "
+                        dmc.AccordionPanel([html.H6('Class imbalance check', style={'textAlign':'center'}),
+                                            html.P('Checks to what extent the amount of instances per label value are equal',
+                                                    style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_class_imbalance.to_dict('records')),
+                                            html.H6('Conflicting labels check',
+                                                    style={'textAlign': 'center'}),
+                                            html.P('Checks for instances with exactly the same feature values, but different labels (which confuse the model)',
+                                                   style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_conflicting_labels.to_dict('records')),
+                                            html.P("There are {}% conflicting labels".format(percent_conflicting), style={'textAlign': 'center'})
+
+                        ]
                         ),
                     ],
                     value="labelpurity",
