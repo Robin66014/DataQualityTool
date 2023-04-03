@@ -12,8 +12,8 @@ amount_of_columns = 999999999
 amount_of_samples = 999999999
 
 
-def single_value(dataset):
-    """"Checks whether redundant columns exist that contain one single unique value, and displays this value"""
+def amount_of_diff_values(dataset):
+    """"displays the amount of different values per column"""
     #TODO: currently only displays the amount of distinct values in a column, do something with the case that it is literally unique
     checkSingleValue = deepchecks.tabular.checks.IsSingleValue(n_to_show=amount_of_columns, n_samples=amount_of_samples)
     resultSingleValue = checkSingleValue.run(dataset)
@@ -47,7 +47,8 @@ def mixed_data_types(dataset):
                 result_dict[key] = {'strings': 0.0, 'numbers': 1.0, 'strings_examples': {}, 'numbers_examples': {', '.join(map(str, random_samples))}}
 
     df = pd.DataFrame.from_dict(result_dict, orient='columns')
-
+    index_names = df.index
+    df.insert(0, 'Data type', index_names)
     #df = pd.DataFrame(resultMixedDataTypes.display[1])
 
     return df
@@ -62,8 +63,12 @@ def special_characters(dataset):
     resultSpecialCharacters = checkSpecialCharacters.run(dataset)
 
     result = resultSpecialCharacters.display
-    df = pd.DataFrame(result[1])
-
+    if result:
+        df = pd.DataFrame(result[1])
+        column_names = df.index
+        df.insert(0, 'Column', column_names)
+    else:
+        df = pd.DataFrame({"Message": ["No special characters encountered"]})
     return df
 
 
@@ -73,21 +78,38 @@ def string_mismatch(dataset):
                                                                          n_samples=amount_of_samples)
     resultStringMismatch = checkStringMismatch.run(dataset)
 
-    result = resultStringMismatch.display[1]
-    df = pd.DataFrame(result)
+
+    result = resultStringMismatch.display
+    if result:
+        df = pd.DataFrame(result[1])
+        df = pd.DataFrame(df.to_records()) #flatten hierarchical index in columns
+    else:
+        df = pd.DataFrame({"Message": ["No string mismatch or variants of the same string encountered"]})
 
     return df
+
+
 
 
 #TODO: (als je dit nog wilt) String length out of bounds
 
 
-# #for testing purposes
-# #data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}
+#for testing purposes
+#data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}
+
+dataframe = pd.DataFrame({
+    'a': ['deep', np.nan, 'Deep', 'deep!!', '?'],
+    'b': [2, 3, 4, 8, '!'],
+    'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo', '5'],
+    'd': ['a', 4, 'ploep', 'hoi', '#'],
+})
+
 # dataframe = pd.DataFrame({
 #     'a': ['Deep', np.nan, 'deep', 'deep!'],
 #     'b': [2, 3, 4, 8],
 #     'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo'],
 #     'd': ['a', 4, 'ploep', 'hoi'],
 # })
-# string_mismatch(dataframe)
+
+val = string_mismatch(dataframe)
+print(val)

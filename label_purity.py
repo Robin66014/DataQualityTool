@@ -39,7 +39,7 @@ def conflicting_labels(dataset):
     result = resultConflictingLabels.value
     percentage = round(result.get('percent'), 6)
     resultDF = resultConflictingLabels.display[1]
-
+    #print(resultDF)
     return resultDF
 
 
@@ -54,9 +54,12 @@ def wrong_label(dataset):
 
     #labels = [np.where(np.array(list(dict.fromkeys(labels))) == e)[0][0] for e in labels]
 
+    #TODO: problem; string valus need to be encoded for cleanlab to use
     # dataset_no_label = dataset.features_columns
     # labels = dataset.label_col.tolist()
     # encoded_labels = LabelEncoder().fit_transform(labels)
+    # for i in range(0, len(encoded_labels)):
+    #     encoded_labels[i] = int(encoded_labels[i])
     # print('dataset: ', dataset_no_label)
     # print('encoded_labels: ', encoded_labels)
     # yourFavoriteModel = LogisticRegression(verbose=0, random_state=0)
@@ -67,7 +70,9 @@ def wrong_label(dataset):
 
 
 
+#TODO: een functie maken waarin ik de class parity check (prediction accuracy per target group)
+
 from deepchecks.tabular.datasets.classification import adult
 ds = adult.load_data(as_train_test= False)
 
-wrong_label(ds)
+conflicting_labels(ds)
