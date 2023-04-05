@@ -8,6 +8,7 @@ from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
 from deepchecks.tabular.datasets.classification import adult
 import plotly.express as px
+import plotly.figure_factory as ff
 #dataset = Dataset(data, label = 'Species')
 amount_of_columns = 999999999
 amount_of_samples = 10000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
@@ -27,8 +28,8 @@ def feature_feature_correlation(dataset):
     resultFeatureFeatureCorrelation = checkFeatureFeatureCorrelation.run(dataset)
 
     correlationDF = resultFeatureFeatureCorrelation.value #pandas dataframe with correlation values
-    fig = px.imshow(correlationDF) #plotly image for in Dash application
-
+    fig = px.imshow(correlationDF, text_auto=True, aspect="auto", color_continuous_scale='thermal') #plotly image for in Dash application
+    #fig = ff.create_annotated_heatmap(correlationDF)
     return correlationDF, fig
 
 def feature_label_correlation(dataset):
@@ -61,7 +62,7 @@ def feature_importance(dataset):
     #TODO: maken met random forest
     return None
 
-def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.90):
+def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80):
     """"Function that checks for outliers samples (jointly across all features) using
      the LoOP algorithm: (https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf)"""
 
@@ -100,7 +101,21 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.90
 # })
 # zero_data = np.zeros(shape=(100,100))
 # ds = pd.DataFrame(zero_data)
+
 # ds = adult.load_data(as_train_test=False)
-# res, amount = feature_feature_correlation(ds)
+# checkClassImbalance = deepchecks.tabular.checks.ClassImbalance(n_top_labels=amount_of_columns)
+# resultClassImbalance = checkClassImbalance.run(ds)
+#
+# result = resultClassImbalance.value #pandas dataframe with correlation values
+# resultDF = pd.DataFrame(result, index=[0])
+# print('@@ds.label_co: ', ds.label_col)
+# print('@@ds.data: ', ds.data)
+# print('@@ds.classes_in_label_col: ', ds.classes_in_label_col)
+# print('@@ds.columns_info: ', ds.columns_info)
+# print('@@ds.cat_features: ', ds.cat_features)
+#
+
+# res, amount = outlier_detection(ds)
 # print(res)
-#print(amount)
+# print(res.iloc[0,:])
+# print(amount)

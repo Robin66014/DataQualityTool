@@ -19,33 +19,33 @@ from scipy.io.arff import loadarff
 # df = pd.DataFrame(data[0])
 # io.StringIO(decoded.decode('utf-8'))
 # print(df.head())
-df = pd.read_csv('datasets\data.csv')
-profile = ProfileReport(df, title="Profiling Report")
-
-print(profile.html)
-#profile.to_file("your_report.html")
-# As a JSON string
+# df = pd.read_csv('datasets\data.csv')
+# profile = ProfileReport(df, title="Profiling Report")
+#
+# print(profile.html)
+# #profile.to_file("your_report.html")
+# #As a JSON string
 # json_data = profile.to_json()
 # print(json_data)
 
-app.layout = html.Div([
-    dcc.Dropdown(
-        id = 'dropdown-to-show_or_hide-element',
-        options=[
-            {'label': 'Show element', 'value': 'on'},
-            {'label': 'Hide element', 'value': 'off'}
-        ],
-        value = 'on'
-    ),
-
-    # Create Div to place a conditionally visible element inside
-    html.Div([
-        # Create element to hide/show, in this case an 'Input Component'
-        dcc.Input(
-        id = 'element-to-hide',
-        placeholder = 'something',
-        value = 'Can you see me?',
-        )
-    ], style= {'display': 'block'} # <-- This is the line that will be changed by the dropdown callback
-    )
-    ])
+# app.layout = html.Div([
+#     dcc.Dropdown(
+#         id = 'dropdown-to-show_or_hide-element',
+#         options=[
+#             {'label': 'Show element', 'value': 'on'},
+#             {'label': 'Hide element', 'value': 'off'}
+#         ],
+#         value = 'on'
+#     ),
+#
+#     # Create Div to place a conditionally visible element inside
+#     html.Div([
+#         # Create element to hide/show, in this case an 'Input Component'
+#         dcc.Input(
+#         id = 'element-to-hide',
+#         placeholder = 'something',
+#         value = 'Can you see me?',
+#         )
+#     ], style= {'display': 'block'} # <-- This is the line that will be changed by the dropdown callback
+#     )
+#     ])

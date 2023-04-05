@@ -1,7 +1,7 @@
 import pandas as pd
 import sortinghatinf #algorithm to predict the feature type out og [numeric, categorical, datetime, sentence,
 from deepchecks.tabular import Dataset
-
+from deepchecks.tabular.datasets.classification import adult
 
 #data = pd.read_csv('datasets\Iris.csv')
 def obtain_feature_type_table(df):
@@ -28,7 +28,13 @@ def createDatasetObject(df, feature_types, label):
     #date_name = #todo hoe date_time en ID kolom meenemen in Dataset object? Gewoon weglaten in het begin?
 
     if label != 'None':
-        ds = Dataset(df, label=label, cat_features=categorical_features)
+        if df[label].nunique() == 2: #binary classification
+            ds = Dataset(df, label=label, cat_features=categorical_features, label_type='binary')
+        elif df[label].nunique() > 2 and df[label].dtype == 'object': #likely a multi-class classifcation problem
+            ds = Dataset(df, label=label, cat_features=categorical_features, label_type='multiclass')
+        else: #likely a regression problem
+            ds = Dataset(df, label=label, cat_features=categorical_features, label_type='regression')
+
     else: #no label selected by app user
         ds = Dataset(df, cat_features=categorical_features)
 
@@ -60,3 +66,6 @@ def createDatasetObject(df, feature_types, label):
 
 # print(data.head())
 
+# ds = adult.load_data(as_train_test=False)
+# res = createDatasetObject(ds)
+# print(res)

@@ -204,7 +204,8 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
         #Running of the checks
         #duplicates & missing
         df_missing_values = duplicates_and_missing.missing_values(df)
-        #TODO: duplicates check --> ydata profiling?
+        print(df_missing_values.head(4))
+        df_duplicates = duplicates_and_missing.duplicates(df)     #TODO: duplicates check testen
 
         #type integrity checks
         df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
@@ -214,7 +215,7 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
 
         #outliers & correlations
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
-        df_outliers = outliers_and_correlations.outlier_detection(ds)
+        df_outliers, amount_of_outliers = outliers_and_correlations.outlier_detection(ds)
         if target_column != 'None': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
 
@@ -235,13 +236,17 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
                 html.H6('Profiling report and issue overview', style={'textAlign':'center'}),
                 html.P('This section contains a profling report showing important information'
                        'regarding ML issues found in the dataset', style={'textAlign':'center'}),
+                #TODO: TQDM loader
+                #TODO: warning reports + general profiling section (o.b.v. data readiness report?)
+
                 dmc.Accordion(
                 children=[
                     dmc.AccordionItem(
                         [
                             dmc.AccordionControl("Duplicates & missing values ({})".format(36)),
-                            dmc.AccordionPanel([dash_table.DataTable(df_missing_values.to_dict('records')), #TODO: add duplicates
-                                "Colors, fonts, shadows and many other parts are customizable to fit your design needs"]
+                            dmc.AccordionPanel([dash_table.DataTable(df_missing_values.to_dict('records')),
+                                                dash_table.DataTable(df_duplicates.to_dict('records'))
+                                               ]
                             ),
 
                         ],
@@ -272,10 +277,12 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
                         dmc.AccordionControl("Outliers & correlations ({})".format(36)),
                         dmc.AccordionPanel([html.H6("Outlier samples check",
                                                     style={'textAlign': 'center'}),
-                                            html.P("Function that checks for outliers samples (jointly across all features) using "
-                                                   "the LoOP algorithm: (https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf)",
+                                            html.P(["Function that checks for outliers samples (jointly across all features) using "
+                                                   "the LoOP algorithm: ", html.A('LoOp paper', href='https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf')],
                                                    style={'textAlign': 'center'}),
-                                            #dash_table.DataTable(df_outliers.to_dict('records'))  #TODO: fix tuple error,
+                                            dash_table.DataTable(df_outliers.to_dict('records'), style_table={'overflowX': 'scroll'}),
+                                            html.P("{} outliers have been found above the set probability threshold".format(amount_of_outliers),
+                                                   style={'textAlign': 'center'}),
                                             html.H6("Feature-feature correlation check",
                                                     style={'textAlign': 'center'}),
                                             html.P("computes the correlation between each feature pair;"
@@ -284,8 +291,8 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
                                                    " numerical-categorical: Correlation ratio"
                                                    " categorical-categorical: Symmetric Theil’s U",
                                                    style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_feature_feature_correlation.to_dict('records')), #TODO: put column names on rows as well
-                                            #TODO add figure
+                                            #dash_table.DataTable(df_feature_feature_correlation.to_dict('records')),
+                                            dcc.Graph(figure=correlationFig),
                                             html.H6("Feature-label correlation check", style={'textAlign': 'center'}),
                                             html.P("Computes the correlation between each feature and the label, "
                                                    "in a similar fashion as the feature-feature correlation",
@@ -334,35 +341,3 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-
-
-
-
-# TODO: oude code, checkbox
-# app.layout = html.Div([
-#
-#     html.H1("Data quality web app", style={'text-align': 'center'}),
-#
-#     dcc.Dropdown(id="slct_year",
-#                  options=[
-#                      {"label": "2015", "value": 2015},
-#                      {"label": "2016", "value": 2016},
-#                      {"label": "2017", "value": 2017},
-#                      {"label": "2018", "value": 2018}],
-#                  multi=False,
-#                  value=2015,
-#                  style={'width': "40%"}
-#                  ),
-#
-#     html.Div(id='output_container', children=[]),
-#     html.Br(),
-#
-#     #dcc.Graph(id='my_bee_map', figure={})
-#
-# ])
-#
-#
-#
-# if __name__ == '__main__':
-#     app.run_server(debug=True)
