@@ -6,8 +6,7 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
-#data = pd.read_csv('datasets\Iris.csv')
-#dataset = Dataset(data, label = 'Species')
+
 amount_of_columns = 999999999
 amount_of_samples = 999999999
 
@@ -40,38 +39,34 @@ def missing_values(dataset):
     #if column contains the missing value type, add it's count and percentage missing in the dictionary, else add 0
     myDict = {key: [] for key in types_of_missing_values_list}
     total_missing_in_column = []
+    #print('@@resultMixedNulls.value.items', resultMixedNulls.value.items())
     for key, value in resultMixedNulls.value.items():
         missing_in_column = 0
         for type_of_missing_value in types_of_missing_values_list:
             if type_of_missing_value in value:
-                myDict[type_of_missing_value].append(value[type_of_missing_value])
-                missing_in_column += value[type_of_missing_value]['percent']
+                count = value[type_of_missing_value]['count']
+                percent = value[type_of_missing_value]['percent'] * 100
+                formatted_string = "{} ({:.3f}%)".format(count, percent)
+                myDict[type_of_missing_value].append(formatted_string)
+                missing_in_column += percent
             else:
                 myDict[type_of_missing_value].append(0)
         total_missing_in_column.append(missing_in_column)
 
-
     missing_values_df = resultPercentOfNulls.value
-    #TODO: potentieel extra kolommen expandable maken + totale getal missing values kloppend maken
+
     for key, value in myDict.items():
         missing_values_df[key] = value
 
     #append column to df with total missingness per column
     missing_values_df['Potential total missingness percentage in column'] = total_missing_in_column
-    #TODO: uitleg dat line hierboven ook missingness in de vorm van '' meeneemt buiten NA waardes als numpy.NaN
-    #TODO: n_top_columns variabel maken (door gebruiker aanpasbaar, of als het meer dan 20 kolommen zijn dan maar 10 showen oid)
     missing_values_df.rename(columns={"Percent of nulls in sample": "Percent missing (NA)"}, inplace=True)
 
-    #if there are no 'potential' missing values, the column isn't necessary
-    # if missing_values_df['Percent missing (NA)'].equals(missing_values_df['Potential total missingness percentage in column']):
-    #     missing_values_df = missing_values_df.drop('Potential total missingness percentage in column', axis=1)
-
-    #missing_values_df.columns = missing_values_df.columns.map(str)
-    #TODO: value error fixen die in datatable komt met None, Nan etc
-    missing_values_df = missing_values_df.rename(columns={'pandas.NaT': 'missing_value_type_2', 'pandas.NA': 'missing_value_type_2', '"None"': 'missing_value_type_1', '"none"': 'missing_value_type_1'})
     column_names = missing_values_df.index
     missing_values_df.insert(0, 'Columns', column_names)
-    #missing_values_df = missing_values_df.rename(columns={'Percent missing (NA)': 'meow'})
+
+    modified_list = [name.replace('"', '') for name in missing_values_df.columns]  # remove double quotes in values, like '"None"' --> 'None'
+    missing_values_df.columns = modified_list
     # append the zeros list to the original dataframe
     missing_values_df.insert(len(missing_values_df.columns) - 1, 'Zeros', zeros)
     missing_values_df['Potential total missingness percentage in column'] = [x + zeros_percentage_list[i] for i, x in enumerate(missing_values_df['Potential total missingness percentage in column'])]
@@ -122,8 +117,9 @@ def duplicates(df):
 # data = {'Name': ['John', 'Jane', 'Bob', 'Mary', 'Kate'],
 #         'Age': [25, 31, 19, 27, 22],
 #         'City': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Boston']}
-#
-# df = pd.DataFrame(data)
-#
-# res = duplicates(df)
+
+# df = pd.read_csv('datasets\iris_with_missing.csv')
+# # df = pd.DataFrame(data)
+# #
+# res = missing_values(df)
 # print(res)

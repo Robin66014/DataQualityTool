@@ -49,3 +49,7 @@ from scipy.io.arff import loadarff
 #     ], style= {'display': 'block'} # <-- This is the line that will be changed by the dropdown callback
 #     )
 #     ])
+
+from ydata_synthetic import streamlit_app
+
+streamlit_app.run()

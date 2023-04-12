@@ -204,7 +204,6 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
         #Running of the checks
         #duplicates & missing
         df_missing_values = duplicates_and_missing.missing_values(df)
-        print(df_missing_values.head(4))
         df_duplicates = duplicates_and_missing.duplicates(df)     #TODO: duplicates check testen
 
         #type integrity checks
@@ -235,7 +234,7 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
                 html.Hr(),  # horizontal line
                 html.H6('Profiling report and issue overview', style={'textAlign':'center'}),
                 html.P('This section contains a profling report showing important information'
-                       'regarding ML issues found in the dataset', style={'textAlign':'center'}),
+                       ' regarding ML issues found in the dataset', style={'textAlign':'center'}),
                 #TODO: TQDM loader
                 #TODO: warning reports + general profiling section (o.b.v. data readiness report?)
 
