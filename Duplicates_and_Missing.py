@@ -97,8 +97,10 @@ def duplicates(df):
 
 
 
+def duplicate_column():
 
 
+    return None
 
 
 # data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}

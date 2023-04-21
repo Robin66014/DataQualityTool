@@ -8,8 +8,10 @@ from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
 from deepchecks.tabular.datasets.classification import adult
 import plotly.express as px
-#dataset = Dataset(data, label = 'Species')
-
+import cleanlab
+from xgboost import XGBClassifier
+from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import accuracy_score
 
 amount_of_columns = 999999999
 amount_of_samples = 10000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
@@ -46,31 +48,30 @@ def conflicting_labels(dataset):
     return resultDF, percentage
 
 
-def wrong_label(dataset):
+def wrong_label(encoded_dataset, target):
     """"Function that finds potential label errors (due to annotator mistakes), edge cases, and otherwise ambiguous examples"""
-    #cleanlab + deepchecks
-    import cleanlab
-    from cleanlab.classification import CleanLearning
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.preprocessing import LabelEncoder
-    #TODO: problem; string valus need to be encoded for models that cleanlab uses
+    model_XGBC = XGBClassifier(tree_method="hist", enable_categorical=True)  # hist is fastest tree method of XGBoost, use default model
+    # TODO: add more models and choose whichever gives highest prediction? Downside --> slows process
 
-    #labels = [np.where(np.array(list(dict.fromkeys(labels))) == e)[0][0] for e in labels]
+    data_no_labels = encoded_dataset.drop(columns=[target])
+    labels = encoded_dataset[target]
 
+    #obtain predicted probabilities using 5 fold cross validation
+    pred_probs = cross_val_predict(model_XGBC, data_no_labels, labels, method='predict_proba')
 
+    preds = np.argmax(pred_probs, axis=1)
+    acc_original = accuracy_score(preds, labels)
+    print(f"Accuracy with original data: {round(acc_original * 100, 1)}%")
 
-    # dataset_no_label = dataset.features_columns
-    # labels = dataset.label_col.tolist()
-    # encoded_labels = LabelEncoder().fit_transform(labels)
-    # for i in range(0, len(encoded_labels)):
-    #     encoded_labels[i] = int(encoded_labels[i])
-    # print('dataset: ', dataset_no_label)
-    # print('encoded_labels: ', encoded_labels)
-    # yourFavoriteModel = LogisticRegression(verbose=0, random_state=0)
-    # issues = CleanLearning(yourFavoriteModel, seed=0).find_label_issues(X= dataset_no_label, labels = encoded_labels)
-    # print(issues.head())
+    #use cleanlabs built in confident learning method to find label issues
+    cl = cleanlab.classification.CleanLearning()
+    issues_dataframe = cl.find_label_issues(X=None, labels=labels, pred_probs=pred_probs)
+    wrong_label_count = (issues_dataframe['is_label_issue'] == True).sum()
 
-    return None
+    # filter df so only errors are visible
+    issues_dataframe_only_errors = issues_dataframe[issues_dataframe['is_label_issue'] == True]
+
+    return issues_dataframe, issues_dataframe_only_errors, wrong_label_count
 
 
 
