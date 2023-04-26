@@ -17,6 +17,7 @@ import outliers_and_correlations
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import label_purity
+import helper_and_transform_functions
 import testingFile
 #df = pd.read_csv('datasets\Iris.csv')
 sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url',
@@ -150,43 +151,6 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             zip(list_of_contents, list_of_names, list_of_dates)]
         return children
 
-# @app.callback(
-#     Output('container-checks-button-pressed', 'children'),
-#     [Input('run-checks-button', 'n_clicks'), Input('table-dropdown', 'data')]
-# )
-# def run_checks(n_clicks, dtypes):#, n, target):
-#     if n_clicks >= 1: #run checks button clicked
-#         print(dtypes)
-#     return 'Hello' ##html.Div([])
-
-# @app.callback(
-#     Output('table-dropdown', 'editable'),
-#     [Input('table-dropdown', 'data'),
-#      Input('stored-data', 'data')])
-# def infer_datatypes(dtypes, data):
-#     sdf = data
-#     decoded = base64.b64decode(data)
-#     df = pd.read_csv(
-#         io.StringIO(decoded.decode('utf-8')))
-#     current_dtypes = obtain_feature_type_table(df)
-#     current_dtypes = current_dtypes.columns
-#     print('dtypes: ', dtypes)
-#     print('current_dtypes: ', current_dtypes)
-#     # if dtypes is None or dtypes == [current_dtypes]:
-#     #     raise PreventUpdate
-#     # dtypes = dtypes[0]
-#     # ctx = dash.callback_context
-#     # last_callback = ctx.triggered[0]['prop_id'].split('.')[0]
-#     # if last_callback == 'datatable':
-#     #     return [current_dtypes]
-#     # if len(dtypes) != len(current_dtypes):
-#     #     dtypes = {k: dtypes[k] for k in dtypes.keys() & current_dtypes.keys()}
-#     # sdf.update_dtypes(dtypes)
-#     return True#[sdf.get_dtypes()]
-
-    # def get_dtypes(data):
-    #     return data.dtypes.apply(lambda x: x.name).to_dict()
-
 
 @app.callback(
     Output('container-checks-button-pressed', 'children'),
@@ -214,7 +178,9 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
 
         #outliers & correlations
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
-        df_outliers, amount_of_outliers = outliers_and_correlations.outlier_detection(ds)
+        df_outliers, amount_of_outliers, threshold = outliers_and_correlations.outlier_detection(ds)
+        pandas_dq_report = helper_and_transform_functions.pandas_dq_report(df, target_column)
+
         if target_column != 'None': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
 
@@ -237,6 +203,8 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
                        ' regarding ML issues found in the dataset', style={'textAlign':'center'}),
                 #TODO: TQDM loader
                 #TODO: warning reports + general profiling section (o.b.v. data readiness report?)
+                #dash_table.DataTable(id='table', columns=[{"name": i, "id": i} for i in pandas_dq_report.columns], data=df.to_dict('records')),
+                dash_table.DataTable(pandas_dq_report.to_dict('records')),
 
                 dmc.Accordion(
                 children=[
@@ -280,7 +248,7 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
                                                    "the LoOP algorithm: ", html.A('LoOp paper', href='https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf')],
                                                    style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_outliers.to_dict('records'), style_table={'overflowX': 'scroll'}),
-                                            html.P("{} outliers have been found above the set probability threshold".format(amount_of_outliers),
+                                            html.P("{} outliers have been found above the set probability threshold of {}".format(amount_of_outliers, threshold),
                                                    style={'textAlign': 'center'}),
                                             html.H6("Feature-feature correlation check",
                                                     style={'textAlign': 'center'}),

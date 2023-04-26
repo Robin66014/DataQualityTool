@@ -1,12 +1,14 @@
 import pandas as pd
+import plotly.express as px
 from scipy.stats import shapiro, anderson, kstest, normaltest
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 from scipy.stats import shapiro, anderson, kstest, normaltest
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-from sklearn import preprocessing
-
+import missingno as msno
+from sklearn.preprocessing import LabelEncoder
+import pandas_dq
 def test_normality(dataset, column_types):
     """
     Performs normality tests on all numeric columns of a dataset and returns the test results.
@@ -50,6 +52,43 @@ def test_normality(dataset, column_types):
 
 
 def check_dimensionality():
+    #TODO: waarschuwing geven als dimensionality te groot (te veel features / te weinig instances heeft)
+    return None
+
+
+def pandas_dq_report(dataset, target):
+
+
+    #TODO fixen voor regression
+
+    if target != 'None':
+        #label encode target if categorical
+        le = LabelEncoder()
+        le.fit(dataset[target])
+        # Transform target column using the fitted encoder
+        dataset[target] = le.transform(dataset[target])
+        #create dq report
+        report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
+    else:
+        report = pandas_dq.dq_report(dataset, target=None, csv_engine="pandas", verbose=1)
+    #Convert to dict
+    reportDICT = report.to_dict()
+    #fix string issue (dtype) in pandas_dq conversion to a dictionary
+    reportDICT = {k: {k2: str(v2).replace("dtype(", "dtype") for k2, v2 in v.items()} for k, v in reportDICT.items()}
+    #make df
+    reportDF = pd.DataFrame(reportDICT)
+
+    #TODO: aanpassingen maken aan het report zoals: outliers zijn anders, fairness checks toevoegen
+
+    return reportDICT
+
+
+def simple_model_performance():
+
+    #TODO: wat simpele scikit learn modellen runnen na ze geonehotencode zijn om wat performance metrics te laten zien zoals IBM doet
+    #hoe dit doen? random split maken van de dataset voor train en test?
+
+
 
     return None
 
@@ -98,61 +137,27 @@ def encode_categorical_columns(dataset, target, data_types):
 
     return dataset_encoded
 
-def pcp_plot():
+def pcp_plot(encoded_df, target):
+    #TODO: tekst/lookup table toevoegen met conversie categorische variabelen encoding als dictionary
+
+    if target != 'None':
+        #TODO checken of dit werkt voor regression values
+        fig = px.parallel_coordinates(encoded_df, color=target)
+    else:
+        fig = px.parallel_coordinates(encoded_df)
+
+
+    return fig
+
+def missingno_plot(df):
+
+    msno_plot = msno.matrix(df)
+
+    return msno_plot
+
+def plot_feature_importance(dataset, task_type):
+
+    model = XGBClassifier()
+    model.fit(X, y)
 
     return None
-
-def missingno_plot():
-
-    return None
-
-def plot_feature_importance(X, y, feature_names):
-    """
-    Predicts the feature importance using a random forest and plots it.
-
-    Parameters:
-    -----------
-    X : numpy array, shape (n_samples, n_features)
-        The input data.
-    y : numpy array, shape (n_samples,)
-        The target values.
-    feature_names : list of strings, shape (n_features,)
-        The names of the features.
-
-    Returns:
-    --------
-    None
-    """
-    # Initialize the random forest regressor
-    rf = RandomForestRegressor(n_estimators=100, random_state=42)
-
-    # Fit the random forest to the data
-    rf.fit(X, y)
-
-    # Get the feature importances
-    feature_importances = rf.feature_importances_
-
-    # Sort the feature importances in descending order
-    indices = np.argsort(feature_importances)[::-1]
-
-    # Plot the feature importances
-    plt.figure()
-    plt.title("Feature Importance")
-    plt.bar(range(X.shape[1]), feature_importances[indices])
-    plt.xticks(range(X.shape[1]), feature_names[indices], rotation=90)
-    plt.tight_layout()
-    plt.show()
-
-
-
-
-# Generate some random data
-X = np.random.rand(100, 5)
-y = np.random.rand(100)
-
-# Define the feature names
-feature_names = ["Feature 1", "Feature 2", "Feature 3", "Feature 4", "Feature 5"]
-
-# Call the function to plot the feature importance
-plot_feature_importance(X, y, feature_names)
-

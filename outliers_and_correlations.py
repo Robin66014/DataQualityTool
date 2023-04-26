@@ -85,7 +85,7 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
         else:
             amount_of_outliers = result_filtered.shape[0]
 
-        return result_filtered, amount_of_outliers
+        return result_filtered, amount_of_outliers, threshold
 
     except Exception as e:
         return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR": [e]}), None

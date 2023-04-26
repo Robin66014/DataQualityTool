@@ -5,16 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Calculate_data_quality_label.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testingfile.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/warning_report.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Duplicates_and_Missing.py" beforeDir="false" afterPath="$PROJECT_DIR$/Duplicates_and_Missing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bias_and_fairness.py" beforeDir="false" afterPath="$PROJECT_DIR$/fairness_checks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dashapp2.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_and_transform_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/label_purity.py" beforeDir="false" afterPath="$PROJECT_DIR$/label_purity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testingFile.py" beforeDir="false" afterPath="$PROJECT_DIR$/testingFile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testingfile.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/testingfile.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +61,7 @@
       <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents Robinkaelen Onedrive\Documenten\GitHub\DataQualityTool" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.dashapp">
     <configuration name="Type_integrity" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="DataQualityTool" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -193,7 +187,8 @@
       <workItem from="1681213673418" duration="17949000" />
       <workItem from="1681378151289" duration="18027000" />
       <workItem from="1681920616314" duration="6716000" />
-      <workItem from="1682005981638" duration="23157000" />
+      <workItem from="1682005981638" duration="36471000" />
+      <workItem from="1682431970536" duration="7574000" />
     </task>
     <servers />
   </component>
