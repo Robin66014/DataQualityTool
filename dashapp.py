@@ -82,7 +82,7 @@ def parse_contents(contents, filename, date):
             columns = [attr[0] for attr in data['attributes']]
             df = pd.DataFrame(data['data'], columns=columns)
         featureTypeTable = obtain_feature_type_table(df)
-        settings.first_time = True
+        #settings.first_time = True
     except Exception as e:
         print(e)
         return html.Div([
@@ -161,8 +161,9 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 )
 def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
     if n_clicks >= 1: #run checks button clicked
+        dtypes_dict = dtypes[0]
         df = pd.DataFrame(df_json) #deserialize JSON string stored in web browser
-        ds = createDatasetObject(df, dtypes, target_column)
+        ds = createDatasetObject(df, dtypes_dict, target_column)
         #TODO: convert to Deepchecks datasets, keep in mind length error
 
         #Running of the checks
@@ -197,6 +198,7 @@ def run_checks(n_clicks, df_json, dtypes, target_column):#, n, target):
                 {"Message": ["This check is not applicable as there is no target column selected"]})
 
         return html.Div([#Data issue / check results section
+                html.Hr(),  # horizontal line
                 html.Hr(),  # horizontal line
                 html.H6('Profiling report and issue overview', style={'textAlign':'center'}),
                 html.P('This section contains a profling report showing important information'

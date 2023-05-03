@@ -5,8 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dashapp2.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DataTypeInference.py" beforeDir="false" afterPath="$PROJECT_DIR$/DataTypeInference.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fairness_checks.py" beforeDir="false" afterPath="$PROJECT_DIR$/fairness_checks.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_and_transform_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testingfile.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/testingfile.ipynb" afterDir="false" />
     </list>
@@ -189,6 +190,7 @@
       <workItem from="1681920616314" duration="6716000" />
       <workItem from="1682005981638" duration="36471000" />
       <workItem from="1682431970536" duration="7574000" />
+      <workItem from="1682499106570" duration="39862000" />
     </task>
     <servers />
   </component>
