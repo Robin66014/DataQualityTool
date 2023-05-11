@@ -1,5 +1,4 @@
 import pandas
-import streamlit as st
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd

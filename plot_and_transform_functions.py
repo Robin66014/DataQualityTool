@@ -3,7 +3,7 @@ import plotly.express as px
 from scipy.stats import shapiro, anderson, kstest, normaltest
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from scipy.stats import shapiro, anderson, kstest, normaltest
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import missingno as msno
@@ -13,7 +13,9 @@ from xgboost import XGBClassifier
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier
+from category_encoders.target_encoder import TargetEncoder
+
+
 def test_normality(dataset, column_types):
     """
     Performs normality tests on all numeric columns of a dataset and returns the test results.
@@ -78,12 +80,15 @@ def pandas_dq_report(dataset, target):
         report = pandas_dq.dq_report(dataset, target=None, csv_engine="pandas", verbose=1)
     #Convert to dict
     reportDICT = report.to_dict()
+    print(reportDICT)
     #fix string issue (dtype) in pandas_dq conversion to a dictionary
     reportDICT = {k: {k2: str(v2).replace("dtype(", "dtype") for k2, v2 in v.items()} for k, v in reportDICT.items()}
-    #make df
-    reportDF = pd.DataFrame(reportDICT)
 
+    #make df and append list of column names to beginning of df
+    reportDF = pd.DataFrame(reportDICT)
+    reportDF.insert(0, 'Column', list(dataset.columns))
     #TODO: aanpassingen maken aan het report zoals: outliers zijn anders, fairness checks toevoegen
+    #TODO: additional remarks; total outliers based on all column values, fairness warnings, few instances compared to amount of columns
 
     return reportDF
 
@@ -98,10 +103,16 @@ def simple_model_performance():
     return None
 
 
-def encode_categorical_columns(dataset, target, data_types):
+def encode_categorical_columns(dataset, target, dtypes):
+    """"Function that one-hot-encodes categorical columns and label encodes the target column. It returns the encoded dataset
+    and the mapping of the original labels to the encoded labels"""
     #Find all categorical columns
-    # TODO: regel hieronder aanpassen naar wat de user heeft ingegeven (let hierbij op strings als dtype, moeten gezien worden als categorical)
-    categorical_cols = dataset.select_dtypes(include=['object', 'category']).columns.tolist() #TODO: aanpassen naar dtypes sortinghat
+    #TODO: Regression werkend krijgen (label encoding dan niet van toepassing)
+    categorical_cols = [] #dataset.select_dtypes(include=['object', 'category']).columns.tolist()
+    for col in dataset.columns:
+        if dtypes[col] == 'categorical' or dtypes[col] == 'boolean':
+            categorical_cols.append(col)
+
     mapping = None
     target_is_categorical = False
     if target != 'None':
@@ -119,7 +130,7 @@ def encode_categorical_columns(dataset, target, data_types):
             dataset.drop(columns=[target], inplace=True)
             dataset[target] = encoded_target
     if not categorical_cols:  # then no features are categorical, and we're done
-        return dataset
+        return dataset, mapping
 
     #if there are categorical columns, we want to one-hot-encode them
 
@@ -140,12 +151,13 @@ def encode_categorical_columns(dataset, target, data_types):
     #XGBClassifier doesn't accept: [, ] or <, so loop over the columns and change the names if they contain such values
     new_col_names = {col: col.replace('<', '(smaller than)').replace('[', '(').replace(']', ')') for col in dataset_encoded.columns}
     dataset_encoded = dataset_encoded.rename(columns=new_col_names)
+    #print('@@@@@@@@@@@@@@@@@@@@@', type(dataset_encoded))
 
     return dataset_encoded, mapping
 
 def pcp_plot(encoded_df, target):
     #TODO: tekst/lookup table toevoegen met conversie categorische variabelen encoding als dictionary
-
+    #TODO: clean dataset?
     if target != 'None':
         fig = px.parallel_coordinates(encoded_df, color=target)
     else:
@@ -154,13 +166,77 @@ def pcp_plot(encoded_df, target):
     return fig
 
 def missingno_plot(df):
-
+    #TODO: clean dataset?
     msno_plot = msno.matrix(df)
 
     return msno_plot
 
-def plot_feature_importance(dataset, task_type):
+def plot_feature_importance(df, target, dtypes):
+    """"plots randomforest feature importances in a horizontal barchart, based on target encoded feature values"""
+    te = TargetEncoder()
+    #split target from data
+    x = df.drop(columns=[target])
+    y = df[target]
+    # TODO: clean dataset?
+    if dtypes[target] == 'boolean' or dtypes[target] == 'categorical':
 
-    model = XGBClassifier()
+        le = LabelEncoder()
+        y = le.fit_transform(y)
+        x = te.fit_transform(x, y)
+        rf = RandomForestClassifier(n_estimators=10, n_jobs=-1)
+        rf.fit(x, y)
+    else:
+        x = te.fit_transform(x, y)
+        rf = RandomForestRegressor(n_estimators=10, n_jobs=-1)
+        #TODO: regression
 
-    return None
+    #train random forest classifier / regressor depending on task type
+    #TODO: werkend voor regression maken (afhangend van dtypes)
+
+
+    #obtain feature importances
+    feature_importances = rf.feature_importances_
+
+    #create df from them
+    df_feature_importances = pd.DataFrame({
+        'feature': x.columns,
+        'importance': feature_importances
+    })
+
+    #horizontal barchart
+    fig = px.bar(df_feature_importances.sort_values('importance', ascending=False),
+                 x='importance', y='feature', orientation='h',
+                 title='Feature Importance')
+    return fig
+
+
+def plot_dataset_distributions(data, dtypes):
+    """"plots the distributions per column in the dataset"""
+    #TODO: functie klopt not niet helemaal, zie target iris.csv
+
+
+    figs = []
+
+    # each datatypre requires different plotting
+    for col in data.columns:
+        # histogram for numerical values
+        if dtypes[col] == 'floating' or dtypes[col] == 'numeric' or dtypes[col] == 'integer':
+            fig = px.histogram(data, x=col, title=f'{col} distribution')
+            figs.append(fig)
+
+        #bar chart for categoricals & booleans
+        elif dtypes[col] == 'boolean':
+            fig = px.bar(data, x=col, color=col, title=f'{col} distribution')
+            figs.append(fig)
+        elif dtypes[col] == 'categorical':
+            fig = px.bar(data, x=col, title=f'{col} distribution')
+            figs.append(fig)
+
+        #for sentences, plot the word frequency
+        elif dtypes[col] == 'sentence':
+            word_counts = data[col].str.split(expand=True).stack().value_counts()
+            fig = px.bar(x=word_counts.index, y=word_counts.values, title=f'{col} word cloud')
+            fig.update_layout(xaxis={'categoryorder': 'total descending'})
+            figs.append(fig)
+
+    return figs

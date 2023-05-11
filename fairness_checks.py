@@ -14,6 +14,7 @@ def sensitive_feature_combinations(dataset_original, sensitive_features, target_
     #bin numeric sensitive features into 5 bins
     for feat in sensitive_features:
         if pd.api.types.is_numeric_dtype(dataset[feat]):        #TODO: baseren op data type inference sortinghat
+        #if dtypes[col] == 'floating' or dtypes[col] == 'numeric' or dtypes[col] == 'integer':
             dataset[feat] = pd.cut(dataset[feat], bins=bins)
 
     #obtain all combinations of sensitive features

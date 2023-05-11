@@ -1,5 +1,4 @@
 import pandas
-import streamlit as st
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
@@ -65,7 +64,7 @@ def feature_importance(dataset):
 def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80):
     """"Function that checks for outliers samples (jointly across all features) using
      the LoOP algorithm: (https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf)"""
-
+    #TODO: outliers ook zichtbaar maken in overeenstemming met dq_report / op basis van minimum value
     try:
         checkOutlier = deepchecks.tabular.checks.OutlierSampleDetection(nearest_neighbors_percent=nearest_neighors_percent,
                                                                          n_samples=10000, timeout = 20, n_to_show = amount_of_samples) #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks

@@ -5,10 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/DataTypeInference.py" beforeDir="false" afterPath="$PROJECT_DIR$/DataTypeInference.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dashapp4.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dashapp5.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dashapp3.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp3.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/fairness_checks.py" beforeDir="false" afterPath="$PROJECT_DIR$/fairness_checks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_and_transform_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_and_transform_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/label_purity.py" beforeDir="false" afterPath="$PROJECT_DIR$/label_purity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/outliers_and_correlations.py" beforeDir="false" afterPath="$PROJECT_DIR$/outliers_and_correlations.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testingFile.py" beforeDir="false" afterPath="$PROJECT_DIR$/testingFile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testingfile.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/testingfile.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -19,8 +25,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Jupyter Notebook" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -38,23 +44,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/robin/OneDrive - TU Eindhoven/Documents Robinkaelen Onedrive/Documenten/GitHub/RobinTest/main.py&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "last_opened_file_path": "C:/Users/robin/OneDrive - TU Eindhoven/Documents Robinkaelen Onedrive/Documenten/GitHub/DataQualityToolBugged/dashapp.py",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents Robinkaelen Onedrive\Documenten\GitHub\DataQualityTool" />
       <recent name="C:\Users\robin\OneDrive\Documenten\GitHub\DataQualityTool" />
       <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents\Data Science in Engineering\2022-2023\Graduation project\packaging_tutorial\src\example_package_Robin66014" />
     </key>
@@ -190,7 +197,9 @@
       <workItem from="1681920616314" duration="6716000" />
       <workItem from="1682005981638" duration="36471000" />
       <workItem from="1682431970536" duration="7574000" />
-      <workItem from="1682499106570" duration="39862000" />
+      <workItem from="1682499106570" duration="45426000" />
+      <workItem from="1683120176116" duration="6794000" />
+      <workItem from="1683273137571" duration="43049000" />
     </task>
     <servers />
   </component>

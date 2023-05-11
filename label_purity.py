@@ -1,5 +1,4 @@
 import pandas
-import streamlit as st
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
@@ -25,10 +24,11 @@ def class_imbalance(dataset):
     resultClassImbalance = checkClassImbalance.run(dataset)
 
     result = resultClassImbalance.value #pandas dataframe with correlation values
+    fig = px.bar(x=list(result.keys()), y=list(result.values()), text=list(result.values()))
     resultDF = pd.DataFrame(result, index=[0])
     # fig = px.bar(resultDF) #plotly image for in Dash application
     # fig.show()
-    return resultDF#, fig
+    return resultDF, fig
 
 
 def conflicting_labels(dataset):
@@ -48,10 +48,10 @@ def conflicting_labels(dataset):
     return resultDF, percentage
 
 
-def wrong_label(encoded_dataset, target):
+def cleanlab_label_error(encoded_dataset, target):
     """"Function that finds potential label errors (due to annotator mistakes), edge cases, and otherwise ambiguous examples"""
     model_XGBC = XGBClassifier(tree_method="hist", enable_categorical=True)  # hist is fastest tree method of XGBoost, use default model
-    # TODO: add more models and choose whichever gives highest prediction? Downside --> slows process
+    # TODO: def main problem? testen
 
     data_no_labels = encoded_dataset.drop(columns=[target])
     labels = encoded_dataset[target]
@@ -68,7 +68,7 @@ def wrong_label(encoded_dataset, target):
     issues_dataframe = cl.find_label_issues(X=None, labels=labels, pred_probs=pred_probs)
     wrong_label_count = (issues_dataframe['is_label_issue'] == True).sum()
 
-    # filter df so only errors are visible
+    #filter df so only errors are visible
     issues_dataframe_only_errors = issues_dataframe[issues_dataframe['is_label_issue'] == True]
 
     return issues_dataframe, issues_dataframe_only_errors, wrong_label_count

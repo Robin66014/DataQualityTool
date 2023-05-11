@@ -7,32 +7,29 @@ import io
 import datetime
 import base64
 from dash.dependencies import Input, Output, State
-from DataTypeInference import obtain_feature_type_table, createDatasetObject
 import arff
 from sklearn.preprocessing import LabelEncoder
+import testingFile
+import dash_mantine_components as dmc
 
-#PROBLEM CAUSE STARTS HERE
-# from duplicates_and_missing import missing_values, duplicates
-from type_integrity import amount_of_diff_values, mixed_data_types, special_characters, string_mismatch
-from outliers_and_correlations import feature_label_correlation, feature_feature_correlation, outlier_detection
-#from label_purity import class_imbalance, conflicting_labels
-#from plot_and_transform_functions import pandas_dq_report, encode_categorical_columns, pcp_plot, missingno_plot, plot_dataset_distributions
-#END OF PROBLEM CAUSE
+from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 
-
+#df = pd.read_csv('datasets\Iris.csv')
 sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url',
                            'embedded-number', 'list', 'context-specific', 'numeric']
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+#external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 button_style = {'background-color': 'blue',
                     'color': 'white',
                     'height': '50px',
                     'margin-top': '50px',
                     'margin-left': '50px'}
-
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
+#app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
+app = dash.Dash(__name__, suppress_callback_exceptions=False)
 app.title = "Data quality toolkit"
 
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2
 df = pd.read_csv('datasets/iris.csv')
 
 # Label encode the 'species' column using LabelEncoder from scikit-learn
@@ -42,8 +39,10 @@ df['species_encoded'] = le.fit_transform(df['Species'])
 # Create the PCP plot using Plotly Express
 fig = px.parallel_coordinates(df, color='species_encoded')
 
-# Create the app layout
-app.layout = html.Div([dcc.Upload(
+app.layout = html.Div([
+    html.Div("Data quality toolkit", style={'fontSize':50, 'textAlign':'center'}),
+    html.Hr(),
+    dcc.Upload(
         id='upload-data',
         children=html.Div([
             'Drag and Drop or ',
@@ -63,8 +62,16 @@ app.layout = html.Div([dcc.Upload(
         # Allow multiple files to be uploaded
         multiple=True
     ),
+
     dcc.Graph(figure=fig)
+
+
+
+
+
 ])
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
