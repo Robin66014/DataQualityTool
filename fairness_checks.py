@@ -4,6 +4,7 @@ import pandas as pd
 from itertools import product
 import plotly.express as px
 
+
 def sensitive_feature_combinations(dataset_original, sensitive_features, target_column, bins=5):
     """"function that finds all combinations of possible sensitive features and displays them in a table,
      used for plotting the stacked bar chart later on"""

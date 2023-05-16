@@ -2,13 +2,16 @@ import pandas
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
+import re
 from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
+from plot_and_transform_functions import dash_datatable_format_fix
 data = pd.read_csv('datasets\Iris.csv')
 #dataset = Dataset(data, label = 'Species')
 amount_of_columns = 999999999
 amount_of_samples = 999999999
+
 
 
 def amount_of_diff_values(dataset):
@@ -23,6 +26,7 @@ def amount_of_diff_values(dataset):
 
 
     df = pd.DataFrame.from_dict(result_dict, orient = 'columns')
+    df = dash_datatable_format_fix(df)
 
     return df
 
@@ -41,16 +45,22 @@ def mixed_data_types(dataset):
         if not bool(result_dict[key]): #then the value is {} (empty)
             random_samples = list(dataset[key].sample(n=3)) #obtain 3 random samples
             if pd.api.types.is_string_dtype(dataset[key]): #check whether the values in the column are strings
-                result_dict[key] = {'strings': 1.0, 'numbers': 0.0, 'strings_examples': {', '.join(map(str, random_samples))}, 'numbers_examples': {}}
+                result_dict[key] = {'strings': 1.0, 'numbers': 0.0, 'strings_examples': str(random_samples), 'numbers_examples': str([])}
             else:
-                result_dict[key] = {'strings': 0.0, 'numbers': 1.0, 'strings_examples': {}, 'numbers_examples': {', '.join(map(str, random_samples))}}
+                result_dict[key] = {'strings': 0.0, 'numbers': 1.0, 'strings_examples': str([]), 'numbers_examples': str(random_samples)}
 
     df = pd.DataFrame.from_dict(result_dict, orient='columns')
     index_names = df.index
-    df.insert(0, 'Data type', index_names)
-    #df = pd.DataFrame(resultMixedDataTypes.display[1])
+    if 'Data type' not in df.columns:
+        df.insert(0, 'Data type', index_names)
+
+    #be more clear in that fractions are being displayed
+    df.at['strings', 'Data type'] = 'strings_fraction'
+    df.at['numbers', 'Data type'] = 'numbers_fraction'
+    df = dash_datatable_format_fix(df)
 
     return df
+
 
 
 def special_characters(dataset):
@@ -68,6 +78,11 @@ def special_characters(dataset):
         df.insert(0, 'Column', column_names)
     else:
         df = pd.DataFrame({"Message": ["No special characters encountered"]})
+
+    df.reset_index(drop=True, inplace=True)
+    df = dash_datatable_format_fix(df)
+    print(df)
+
     return df
 
 
@@ -85,7 +100,11 @@ def string_mismatch(dataset):
     else:
         df = pd.DataFrame({"Message": ["No string mismatch or variants of the same string encountered"]})
 
+    df = dash_datatable_format_fix(df)
+
     return df
+
+
 
 
 

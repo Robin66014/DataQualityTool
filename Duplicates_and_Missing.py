@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
+from plot_and_transform_functions import dash_datatable_format_fix
 
 amount_of_columns = 999999999
 amount_of_samples = 999999999
@@ -70,6 +71,7 @@ def missing_values(dataset):
     missing_values_df.insert(len(missing_values_df.columns) - 1, 'Zeros', zeros)
     missing_values_df['Potential total missingness percentage in column'] = [x + zeros_percentage_list[i] for i, x in enumerate(missing_values_df['Potential total missingness percentage in column'])]
 
+    missing_values_df = dash_datatable_format_fix(missing_values_df)
     return missing_values_df #returns dataframe with missing values
 
 def duplicates(df):
@@ -88,7 +90,7 @@ def duplicates(df):
         merged = merged.rename(columns={'index':'Index first encountered'})
         #Drop duplicates from the df
         final_df = merged.drop_duplicates(subset=list(df.columns))
-
+        final_df = dash_datatable_format_fix(final_df)
         return final_df
 
     except Exception as e:
@@ -96,10 +98,24 @@ def duplicates(df):
 
 
 
-def duplicate_column():
+def duplicate_column(df):
+    """"Checks for columns that are exact duplicates """
+    duplicate_cols = []
+    result = []
+    #loop over columns in dataframe and check whether they are duplicates and not already said to be duplicates
+    for col1 in df.columns:
+        for col2 in df.columns:
+            if col1 != col2 and (col2, col1) not in duplicate_cols:
+                if df[col1].equals(df[col2]):
+                    duplicate_cols.append((col1, col2))
+                    result.append({'Column': col1, 'Duplicate column': col2})
 
-
-    return None
+    if duplicate_cols:
+        df_duplicate_columns = pd.DataFrame(result, columns=['Column', 'Duplicate Column'])
+        df_duplicate_columns = dash_datatable_format_fix(df_duplicate_columns)
+        return df_duplicate_columns
+    else:
+        return pd.DataFrame({"Message": ["No duplicate columns encountered"]})
 
 
 # data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}

@@ -1,6 +1,7 @@
 import pandas as pd
 import sortinghatinf #algorithm to predict the feature type out og [numeric, categorical, datetime, sentence,
 from deepchecks.tabular import Dataset
+from plot_and_transform_functions import dash_datatable_format_fix
 from deepchecks.tabular.datasets.classification import adult
 
 #data = pd.read_csv('datasets\Iris.csv')
@@ -14,7 +15,7 @@ def obtain_feature_type_table(df):
     predicted_feature_types = sortinghatinf.get_expanded_feature_types(df)
     feature_type_table = pd.DataFrame(columns=list(df.columns))
     feature_type_table.loc[len(feature_type_table)] = predicted_feature_types
-
+    feature_type_table = dash_datatable_format_fix(feature_type_table)
     return feature_type_table
 
 

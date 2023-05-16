@@ -2,6 +2,7 @@ import pandas
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
+from plot_and_transform_functions import dash_datatable_format_fix
 from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
@@ -29,6 +30,7 @@ def feature_feature_correlation(dataset):
     correlationDF = resultFeatureFeatureCorrelation.value #pandas dataframe with correlation values
     fig = px.imshow(correlationDF, text_auto=True, aspect="auto", color_continuous_scale='thermal') #plotly image for in Dash application
     #fig = ff.create_annotated_heatmap(correlationDF)
+    correlationDF = dash_datatable_format_fix(correlationDF)
     return correlationDF, fig
 
 def feature_label_correlation(dataset):
@@ -49,16 +51,12 @@ def feature_label_correlation(dataset):
     #convert to desired format and round to 3 decimals
     correlationDF = pd.DataFrame(result_dict, index=[0]).round(3)
 
-
+    correlationDF = dash_datatable_format_fix(correlationDF)
     return correlationDF
 
 def identifier_label_correlation(dataset):
     #TODO: MAKEN INDIEN NODIG
 
-    return None
-
-def feature_importance(dataset):
-    #TODO: maken met random forest
     return None
 
 def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80):
@@ -83,11 +81,17 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
             result_filtered = pd.DataFrame({"Message": ["No outliers with a probability score higher than {}, The highest probability found is: {}".format(threshold, max_prob_score)]})
         else:
             amount_of_outliers = result_filtered.shape[0]
+        result_filtered = dash_datatable_format_fix(result_filtered)
 
         return result_filtered, amount_of_outliers, threshold
 
     except Exception as e:
-        return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR": [e]}), None
+        return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR": [e]}), 0, 0
+
+
+def outliers_per_column(df):
+
+    return None
 
 
 ## for testing purposes

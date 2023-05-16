@@ -4,6 +4,10 @@ from scipy.stats import shapiro, anderson, kstest, normaltest
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.svm import SVC, SVR
+from sklearn.metrics import accuracy_score, mean_squared_error
+
 from scipy.stats import shapiro, anderson, kstest, normaltest
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import missingno as msno
@@ -11,51 +15,50 @@ from sklearn.preprocessing import LabelEncoder
 import pandas_dq
 from xgboost import XGBClassifier
 from sklearn.model_selection import cross_val_predict
-from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from category_encoders.target_encoder import TargetEncoder
+from sklearn.model_selection import train_test_split
 
-
-def test_normality(dataset, column_types):
-    """
-    Performs normality tests on all numeric columns of a dataset and returns the test results.
-
-    Args:
-        dataset (pandas DataFrame): The input dataset to test.
-        column_types (list): A list of column data types for the dataset.
-
-    Returns:
-        pandas DataFrame: A dataframe with the test results for all numeric columns.
-    """
-    #create empty df to store the test results
-    test_results = pd.DataFrame(columns=['column', 'shapiro_wilk_stat', 'shapiro_wilk_pvalue',
-                                         'anderson_stat', 'anderson_crit_vals', 'anderson_sig_levels',
-                                         'kolmogorov_smirnov_stat', 'kolmogorov_smirnov_pvalue',
-                                         'd_agostino_pearson_stat', 'd_agostino_pearson_pvalue'])
-
-    #iterate through each column in the dataset
-    for col in dataset.columns:
-        if column_types[col] == 'numeric':
-            data = dataset[col]
-
-            #statistical tests
-            shapiro_result = shapiro(data)
-            anderson_result = anderson(data)
-            ks_result = kstest(data, 'norm')
-            d_ap_result = normaltest(data)
-            #put in df
-            test_results = test_results.append({'column': col,
-                                                'shapiro_wilk_stat': shapiro_result.statistic,
-                                                'shapiro_wilk_pvalue': shapiro_result.pvalue,
-                                                'anderson_stat': anderson_result.statistic,
-                                                'anderson_crit_vals': anderson_result.critical_values,
-                                                'anderson_sig_levels': anderson_result.significance_level,
-                                                'kolmogorov_smirnov_stat': ks_result.statistic,
-                                                'kolmogorov_smirnov_pvalue': ks_result.pvalue,
-                                                'd_agostino_pearson_stat': d_ap_result.statistic,
-                                                'd_agostino_pearson_pvalue': d_ap_result.pvalue},
-                                               ignore_index=True)
-    return test_results
+# def test_normality(dataset, column_types):
+#     """
+#     Performs normality tests on all numeric columns of a dataset and returns the test results.
+#
+#     Args:
+#         dataset (pandas DataFrame): The input dataset to test.
+#         column_types (list): A list of column data types for the dataset.
+#
+#     Returns:
+#         pandas DataFrame: A dataframe with the test results for all numeric columns.
+#     """
+#     #create empty df to store the test results
+#     test_results = pd.DataFrame(columns=['column', 'shapiro_wilk_stat', 'shapiro_wilk_pvalue',
+#                                          'anderson_stat', 'anderson_crit_vals', 'anderson_sig_levels',
+#                                          'kolmogorov_smirnov_stat', 'kolmogorov_smirnov_pvalue',
+#                                          'd_agostino_pearson_stat', 'd_agostino_pearson_pvalue'])
+#
+#     #iterate through each column in the dataset
+#     for col in dataset.columns:
+#         if column_types[col] == 'numeric':
+#             data = dataset[col]
+#
+#             #statistical tests
+#             shapiro_result = shapiro(data)
+#             anderson_result = anderson(data)
+#             ks_result = kstest(data, 'norm')
+#             d_ap_result = normaltest(data)
+#             #put in df
+#             test_results = test_results.append({'column': col,
+#                                                 'shapiro_wilk_stat': shapiro_result.statistic,
+#                                                 'shapiro_wilk_pvalue': shapiro_result.pvalue,
+#                                                 'anderson_stat': anderson_result.statistic,
+#                                                 'anderson_crit_vals': anderson_result.critical_values,
+#                                                 'anderson_sig_levels': anderson_result.significance_level,
+#                                                 'kolmogorov_smirnov_stat': ks_result.statistic,
+#                                                 'kolmogorov_smirnov_pvalue': ks_result.pvalue,
+#                                                 'd_agostino_pearson_stat': d_ap_result.statistic,
+#                                                 'd_agostino_pearson_pvalue': d_ap_result.pvalue},
+#                                                ignore_index=True)
+#     return test_results
 
 
 def check_dimensionality():
@@ -80,7 +83,6 @@ def pandas_dq_report(dataset, target):
         report = pandas_dq.dq_report(dataset, target=None, csv_engine="pandas", verbose=1)
     #Convert to dict
     reportDICT = report.to_dict()
-    print(reportDICT)
     #fix string issue (dtype) in pandas_dq conversion to a dictionary
     reportDICT = {k: {k2: str(v2).replace("dtype(", "dtype") for k2, v2 in v.items()} for k, v in reportDICT.items()}
 
@@ -91,18 +93,6 @@ def pandas_dq_report(dataset, target):
     #TODO: additional remarks; total outliers based on all column values, fairness warnings, few instances compared to amount of columns
 
     return reportDF
-
-
-def simple_model_performance():
-
-    #TODO: wat simpele scikit learn modellen runnen na ze geonehotencode zijn om wat performance metrics te laten zien zoals IBM doet
-    #hoe dit doen? random split maken van de dataset voor train en test?
-
-
-
-    return None
-
-
 def encode_categorical_columns(dataset, target, dtypes):
     """"Function that one-hot-encodes categorical columns and label encodes the target column. It returns the encoded dataset
     and the mapping of the original labels to the encoded labels"""
@@ -240,3 +230,76 @@ def plot_dataset_distributions(data, dtypes):
             figs.append(fig)
 
     return figs
+
+
+def baseline_model_performance(dataset, target, dtypes):
+
+    #check whether this is a regression/classification problem or has no task
+    if target != 'None':
+        if dtypes[target] == 'categorical' or dtypes[target] == 'boolean':
+            problem_type = 'classification'
+        else:
+            problem_type = 'regression'
+    else:
+        return 'Dataset does not contain a target variable, so model training is not applicable'
+
+    #train models for regression and classification
+    models = []
+    if problem_type == 'regression':
+        models.append(('Logistic Regression', LinearRegression(n_jobs=-1)))
+        models.append(('Random Forest', RandomForestRegressor(n_jobs=-1)))
+        models.append(('SVM', SVR()))
+    elif problem_type == 'classification':
+        models.append(('Logistic Regression', LogisticRegression(n_jobs=-1)))
+        models.append(('Random Forest', RandomForestClassifier(n_jobs=-1)))
+        models.append(('SVM', SVC()))
+
+    #get X and y and split into train and test for fair model evaluation
+    X = dataset.drop(columns=[target])
+    y = dataset[target]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+    #train models and get accuracies
+    MSEs = []
+    accuracies = []
+    model_names = []
+    for name, model in models:
+        if problem_type == 'regression': #we use MSE for madel evaluation
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            mse = mean_squared_error(y_test, y_pred)
+            model_names.append(name)
+            MSEs.append(mse)
+        else: #we use accuracy for model evaluation
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+            acc = accuracy_score(y_test, y_pred)
+            model_names.append(name)
+            accuracies.append(acc)
+
+    if problem_type == 'regression':
+        fig = px.bar(x=model_names, y=MSEs, text=MSEs, labels={'x': 'Model', 'y': 'Mean Squared Error'})
+    else:
+        fig = px.bar(x=model_names, y=accuracies, text=accuracies, labels={'x': 'Model', 'y': 'Accuracy'})
+    #put values on top of barchart
+    fig.update_traces(textposition='outside')
+    return fig
+
+
+def clean_dataset(df):
+    #same as from helper.py of openML
+    df = df.loc[:, df.isnull().mean() < 0.8]
+    out = df.fillna(df.mode().iloc[0])
+    return out
+
+
+def dash_datatable_format_fix(df):
+
+    # fix dash datatables issues, as it does not accept dicts
+    remove_brackets = lambda x: str(x).replace('[', '').replace(']', '').replace('{', '').replace('}', '')
+
+    # apply the lambda function to the dataframe
+    df = df.applymap(remove_brackets)
+
+    return df

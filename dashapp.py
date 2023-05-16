@@ -72,11 +72,8 @@ app.layout = html.Div([
 ])
 
 def parse_contents(contents, filename, date):
-    print('checkpoint-1')
     content_type, content_string = contents.split(',')
-    print('checkpoint-2')
     decoded = base64.b64decode(content_string)
-    print('checkpoint-3')
 
     try:
         if '.csv' in filename:
@@ -88,13 +85,9 @@ def parse_contents(contents, filename, date):
             df = pd.read_excel(io.BytesIO(decoded))
         elif '.arff' in filename:
             data = arff.load(io.StringIO(decoded.decode('utf-8')))
-            print('checkpoint1')
             columns = [attr[0] for attr in data['attributes']]
-            print('checkpoint2')
             df = pd.DataFrame(data['data'], columns=columns)
-            print('checkpoint3')
         featureTypeTable = obtain_feature_type_table(df)
-        print('checkpoint4')
         #settings.first_time = True
     except Exception as e:
         print(e)
@@ -123,9 +116,11 @@ def parse_contents(contents, filename, date):
             #     'overflowX': 'scroll'}
         ),
         html.Button('Run data quality checks', id='run-checks-button', n_clicks=0, style=button_style),
+        html.Hr(),  # horizontal line
 
 
         dcc.Loading(children=html.Div(id='container-checks-button-pressed'), type =  'cube'),
+        dcc.Loading(children=html.Div(id='long_running_time_accordion'), type='circle'),
 
         #Dataset overview section
         html.H6('Dataset overview', style={'textAlign': 'center'}),
@@ -174,6 +169,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
     if n_clicks >= 1: #run checks button clicked
         dtypes_dict = dtypes[0]
+        print('@@@@@@@@@@@@@@@@@@@@@@@@@@@dtypes_dict', dtypes_dict)
         df = pd.DataFrame(df_json) #deserialize JSON string stored in web browser
         ds = createDatasetObject(df, dtypes_dict, target)
         #TODO: convert to Deepchecks datasets, keep in mind length error
@@ -182,19 +178,23 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         #duplicates & missing
         df_missing_values = duplicates_and_missing.missing_values(df)
         df_duplicates = duplicates_and_missing.duplicates(df)     #TODO: duplicates check testen
+        df_duplicate_columns = duplicates_and_missing.duplicate_column(df)
 
         #type integrity checks
         df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
         df_mixed_data_types = type_integrity.mixed_data_types(df)
         df_special_characters = type_integrity.special_characters(df)
+        #print(df_special_characters)
         df_string_mismatch = type_integrity.string_mismatch(df)
 
         #outliers & correlations
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
         df_outliers, amount_of_outliers, threshold = outliers_and_correlations.outlier_detection(ds)
+        #df_outlier_per_column = pd.DataFrame({"Message": ["No outliers per column detected"]})
         pandas_dq_report = plot_and_transform_functions.pandas_dq_report(df, target)
 
         #the encoded dataframe
+        df = plot_and_transform_functions.clean_dataset(df)
         encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target, dtypes_dict)
 
         #plots
@@ -202,8 +202,6 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         data_distribution_figures_div = html.Div([dcc.Graph(id='multi_' + str(i), figure=distribution_figures[i], style={'display': 'inline-block', 'width': '30vh', 'height': '30vh'}) for i in range(len(distribution_figures))])
         #missingno_plot = plot_and_transform_functions.missingno_plot(df)
         pcp_plot = plot_and_transform_functions.pcp_plot(encoded_dataframe, target) #TODO: probleem; grote datasets encoding tript, target encoden?
-        #print('@@@@@@@ encoded df type', type(encoded_dataframe))
-        #TODO: feature importance toevoegen
 
 
         if target != 'None': #target column supplied
@@ -223,26 +221,36 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
             fig_class_imbalance = html.Div()
 
         return html.Div([#Data issue / check results section
-                html.Hr(),  # horizontal line
                 html.H6('Profiling report and issue overview', style={'textAlign':'center'}),
                 html.P('This section contains a profling report showing important information'
                        ' regarding ML issues found in the dataset', style={'textAlign':'center'}),
                 #TODO: TQDM loader
                 #TODO: warning reports + general profiling section (o.b.v. data readiness report?)
 
-                dash_table.DataTable(pandas_dq_report.to_dict('records')),
-                #data distribution plots
-                html.P('The following plots give insights into the datasets central tendency and spread. Each plot represents a variables distribution,'
-                       ' with the x-axis showing its value and the y-axis indicating the frequency/proportion of data points with that value.', style={'textAlign': 'center'}),
-
+                dash_table.DataTable(pandas_dq_report.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
 
                 dmc.Accordion(
                 children=[
                     dmc.AccordionItem(
                         [
                             dmc.AccordionControl("Duplicates & missing values ({})".format(36)),
-                            dmc.AccordionPanel([dash_table.DataTable(df_missing_values.to_dict('records')),
+                            dmc.AccordionPanel([html.H6('Missing values check', style={'textAlign':'center'}),
+                                                html.P('Checks the type and amount of missing values. The potential total missingness is the'
+                                                       ' percent missing plus the percentage of zeros.',
+                                                    style={'textAlign': 'center'}),
+                                                dash_table.DataTable(df_missing_values.to_dict('records')),
+                                                html.Hr(),
+                                                html.H6('Duplicates check', style={'textAlign': 'center'}),
+                                                html.P('Checks whether there are any duplicates and displays the row numbers of the  duplicate instances.',
+                                                    style={'textAlign': 'center'}),
                                                 dash_table.DataTable(df_duplicates.to_dict('records')),
+                                                html.H6('Duplicate columns check', style={'textAlign': 'center'}),
+                                                html.P(
+                                                    'Checks whether there are any exact duplicate columns (which slows down the training time of your ML model).',
+                                                    style={'textAlign': 'center'}),
+                                                dash_table.DataTable(df_duplicate_columns.to_dict('records')),
                                                 #dcc.Graph(figure=mpl_to_plotly(missingno_plot))
                                                ]
                             ),
@@ -254,16 +262,25 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                     [
                         dmc.AccordionControl("Type integrity ({})".format(36)),
                         dmc.AccordionPanel([html.H6('Amount of distinct values per column', style={'textAlign':'center'}),
-                                            html.P('Checks the amount of different values for each column',
+                                            html.P('Checks the amount of different values for each column.',
                                                     style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_amount_of_diff_values.to_dict('records')),
-                                            #dash_table.DataTable(df_mixed_data_types.to_dict('records')), #TODO: fix error
+                                            html.Hr(),
+
+                                            html.H6('Mixed data types check',
+                                                    style={'textAlign': 'center'}),
+                                            html.P('Checks for different data types in your dataset, and displays some random samples.',
+                                                   style={'textAlign': 'center'}),
+                                            dash_table.DataTable(df_mixed_data_types.to_dict('records')), #TODO: fix error
+                                            html.Hr(),
+
                                             html.H6("Special characters check", style={'textAlign': 'center'}),
-                                            html.P("checks for characters like '?!$^&#' ", style={'textAlign': 'center'}),
+                                            html.P("checks for characters like '?!$^&#'.", style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_special_characters.to_dict('records')),
+                                            html.Hr(),
                                             html.H6("String mismatch / cell entity check",
                                                     style={'textAlign': 'center'}),
-                                            html.P("Checks for strings that have the same base form, like 'red', 'Red', 'RED!' (base form 'red' )",
+                                            html.P("Checks for strings that have the same base form, like 'red', 'Red', 'RED!' (base form 'red' ).",
                                                    style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_string_mismatch.to_dict('records'))]
                         ),
@@ -276,25 +293,27 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                         dmc.AccordionPanel([html.H6("Outlier samples check",
                                                     style={'textAlign': 'center'}),
                                             html.P(["Function that checks for outliers samples (jointly across all features) using "
-                                                   "the LoOP algorithm: ", html.A('LoOp paper', href='https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf')],
+                                                   "the LoOP algorithm: ", html.A('LoOp paper.', href='https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf')],
                                                    style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_outliers.to_dict('records'), style_table={'overflowX': 'scroll'}),
-                                            html.P("{} outliers have been found above the set probability threshold of {}".format(amount_of_outliers, threshold),
+                                            html.P("{} outliers have been found above the set probability threshold of {}.".format(amount_of_outliers, threshold),
                                                    style={'textAlign': 'center'}),
                                             dcc.Graph(figure=pcp_plot),
+                                            html.Hr(),
                                             html.H6("Feature-feature correlation check",
                                                     style={'textAlign': 'center'}),
                                             html.P("computes the correlation between each feature pair;"
                                                    " Methods to calculate for each feature label pair:"
                                                    " numerical-numerical: Pearson’s correlation coefficient"
                                                    " numerical-categorical: Correlation ratio"
-                                                   " categorical-categorical: Symmetric Theil’s U",
+                                                   " categorical-categorical: Symmetric Theil’s U.",
                                                    style={'textAlign': 'center'}),
                                             #dash_table.DataTable(df_feature_feature_correlation.to_dict('records')),
                                             dcc.Graph(figure=correlationFig),
+                                            html.Hr(),
                                             html.H6("Feature-label correlation check", style={'textAlign': 'center'}),
                                             html.P("Computes the correlation between each feature and the label, "
-                                                   "in a similar fashion as the feature-feature correlation",
+                                                   "in a similar fashion as the feature-feature correlation.",
                                                    style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_feature_label_correlation.to_dict('records'))]
                         ),
@@ -305,23 +324,17 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                     [
                         dmc.AccordionControl("Label purity ({})".format(36)),
                         dmc.AccordionPanel([html.H6('Class imbalance check', style={'textAlign':'center'}),
-                                            html.P('Checks the distribution of instances per label',
+                                            html.P('Checks the distribution of instances per label.',
                                                     style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_class_imbalance.to_dict('records')),#TODO: checken hoe dit zit bij regression
+                                            html.Hr(),
                                             html.H6('Conflicting labels check',
                                                     style={'textAlign': 'center'}),
-                                            html.P('Checks for instances with exactly the same feature values, but different labels (which confuse ML models)',
+                                            html.P('Checks for instances with exactly the same feature values, but different labels (which can confuse your ML model).',
                                                    style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_conflicting_labels.to_dict('records')),
-                                            html.P("There are {}% conflicting labels".format(percent_conflicting), style={'textAlign': 'center'}),
-                                            html.H6('Cleanlab.ai label error check',
-                                                    style={'textAlign': 'center'}),
-                                            html.P([
-                                                "Automatically detects probable label errors using Confident learning", html.A('Confident learning paper',
-                                                                               href='https://arxiv.org/abs/1911.00068')],
-                                                style={'textAlign': 'center'}),
-                                            html.Div(dcc.Loading(id='loading-4',children=html.Div(id="cleanlab_table"))),
-                                            html.Div(id='amount_of_label_errors'),
+                                            html.P("There are {}% conflicting labels.".format(percent_conflicting), style={'textAlign': 'center'}),
+
 
 
                         ]
@@ -335,23 +348,30 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                         dmc.AccordionPanel([
                             #Data distribution plots
                             html.H6('Data distribution', style={'textAlign': 'center'}),
-                            html.P('The following plots display the distribution of your data in each of the features', style={'textAlign': 'center'}),
+                            # data distribution plots
+                            html.P(
+                                'The following plots give insights into the datasets central tendency and spread. Each plot represents a variables distribution,'
+                                ' with the x-axis showing its value and the y-axis indicating the frequency/proportion of data points with that value.',
+                                style={'textAlign': 'center'}),
+
                             data_distribution_figures_div,
+                            html.Hr(),
 
                             #Feature importance plot
                             html.H6('Feature importance analysis', style={'textAlign': 'center'}),
-                            html.P('Displays the feature importance based on target encoded values',
+                            html.P('Displays the feature importance based on target encoded values.',
                                 style={'textAlign': 'center'}),
                             dcc.Loading(
                             id="loading-2",
                             children=html.Div(id="feature_importance_plot_div")),
+                            html.Hr(),
 
                             #Subgroup bias analysis
                             html.H6('Bias analysis', style={'textAlign': 'center'}),
                             html.P(
                                 'In the dropdown menu below, select the sensitive features (if any) that exist in your dataset. The bar chart indicates the amount of times'
                                 'a specific sensitive subgroup appears in your dataset, and the distribution of the class label for that subgroup'
-                                'NOTE: it can take a while in order for the chart to be displayed',
+                                'NOTE: it can take a while in order for the chart to be displayed.',
                                 style={'textAlign': 'center'}),
                             dcc.Dropdown(id="biasDropdown",
                                          options=[{'label': x, 'value': x} for x in df.columns], multi=True,
@@ -371,23 +391,22 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         html.Hr()
 
 
-@app.callback(
-    [Output('cleanlab_table', 'children'),Output('amount_of_label_errors', 'children')],
-    [Input('run-checks-button', 'n_clicks'),
-     State('stored-data', 'data'),
-     State('dtypes_dropdown', 'data'),
-     State('targetColumn', 'value')]
-)
-def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
-    if n_clicks >= 1: #run checks button clicked
-        if target != 'None':
-            df = pd.DataFrame(df_json)
-            dtypes_dict = dtypes[0]
-            encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
-                                                                                                          dtypes_dict)
-            _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
-            print('@@ISSUES DF@@@', issues_dataframe_only_errors), print('@@WRONG LABEL COUNT', wrong_label_count)
-            return dash_table.DataTable(issues_dataframe_only_errors.to_dict('records')), f'Cleanlab detected {wrong_label_count} potential label errors'
+# @app.callback(
+#     [Output('cleanlab_table', 'children'),Output('amount_of_label_errors', 'children')],
+#     [Input('run-checks-button', 'n_clicks'),
+#      State('stored-data', 'data'),
+#      State('dtypes_dropdown', 'data'),
+#      State('targetColumn', 'value')]
+# )
+# def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
+#     if n_clicks >= 1: #run checks button clicked
+#         if target != 'None':
+#             df = pd.DataFrame(df_json)
+#             dtypes_dict = dtypes[0]
+#             encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
+#                                                                                                           dtypes_dict)
+#             _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
+#             return dash_table.DataTable(issues_dataframe_only_errors.to_dict('records')), f'Cleanlab detected {wrong_label_count} potential label errors'
 
 @app.callback(
     Output('feature_importance_plot_div', 'children'),
@@ -401,6 +420,7 @@ def feature_importance_plot(n_clicks, df_json, dtypes, target):#, n, target):
 
         if target != 'None':
             df = pd.DataFrame(df_json)
+            df = plot_and_transform_functions.clean_dataset(df)
             dtypes_dict = dtypes[0]
             feature_importance_plot = plot_and_transform_functions.plot_feature_importance(df, target, dtypes_dict)
             return dcc.Graph(figure = feature_importance_plot)
@@ -420,11 +440,88 @@ def bias_graph(bias_dropdown, df_json, target):
         if bias_dropdown:
             # then atleast one sensitive feature that is not the target is selected, plot the analysis
             df = pd.DataFrame(df_json)
+            df = plot_and_transform_functions.clean_dataset(df)
             sensitive_feature_combinations_table = fairness_checks.sensitive_feature_combinations(df,bias_dropdown, target, bins=5)
             stacked_bar_chart_fig = fairness_checks.plot_stacked_barchart(sensitive_feature_combinations_table)
             return dcc.Graph(figure=stacked_bar_chart_fig)
 
 
+
+@app.callback(
+    Output('long_running_time_accordion', 'children'),
+    [Input('run-checks-button', 'n_clicks'),
+     State('stored-data', 'data'),
+     State('dtypes_dropdown', 'data'),
+     State('targetColumn', 'value')]
+)
+def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
+    if n_clicks >= 1: #run checks button clicked
+        if target != 'None':
+            df = pd.DataFrame(df_json)
+            dtypes_dict = dtypes[0]
+            df = plot_and_transform_functions.clean_dataset(df)
+            encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
+                                                                                                          dtypes_dict)
+            _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
+            return dmc.Accordion(
+                                children=[
+                                    dmc.AccordionItem(
+                                        [
+                                            dmc.AccordionControl("Extra accordion ({})".format(36)),
+                                            dmc.AccordionPanel([#Cleanlab label issues
+                                                                html.H6('Cleanlab.ai label issues check', style={'textAlign': 'center'}),
+                                                                html.P([
+                                                                    "Automatically detects probable label errors using Confident learning, ",
+                                                                    html.A('Confident learning paper',
+                                                                           href='https://arxiv.org/abs/1911.00068'),
+                                                                    ' . The numeric label quality score quantifies clenlabs confidence that the label is correct '
+                                                                    '(a low score thus indicates a high probability that the label is wrong).'],
+                                                                    style={'textAlign': 'center'}),
+                                                                # html.Div(dcc.Loading(id='loading-4',children=html.Div(id="cleanlab_table"))),
+                                                                f'Cleanlab detected {wrong_label_count} potential label errors.',
+                                                                dash_table.DataTable(issues_dataframe_only_errors.to_dict('records'),
+                                                                        page_size = 10,
+                                                                        editable=False,
+                                                                        style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
+                                                                html.Hr(),
+                                                                #Simple model performance
+                                                                html.H6('Baseline Performance Assessment', style={'textAlign': 'center'}),
+                                                                html.P('Displays the baseline performance of three sklearn models with basic settings.'
+                                                                       ' Note that this is in general definitely not the best performance you can achieve,'
+                                                                       ' always tune your model parameters (e.g. by performing a gridsearch) to increase model performance.',
+                                                                       style={'textAlign': 'center'}),
+                                                                dcc.Loading(
+                                                                    id="loading-5",
+                                                                    children=html.Div(id="baseline_performance_plot")),
+                                                                # dcc.Graph(figure=mpl_to_plotly(missingno_plot))
+                                                               ]
+                                            ),
+
+                                        ],
+                                        value="long_running_time_accordion_1",
+                                    )])
+
+
+@app.callback(
+    Output('baseline_performance_plot', 'children'),
+    [Input('run-checks-button', 'n_clicks'),
+     State('stored-data', 'data'),
+     State('dtypes_dropdown', 'data'),
+     State('targetColumn', 'value')]
+)
+def baseline_performance_assessment(n_clicks, df_json, dtypes, target):
+    if n_clicks >= 1: #run checks button clicked
+
+        if target != 'None':
+            df = pd.DataFrame(df_json)
+            df = plot_and_transform_functions.clean_dataset(df)
+            dtypes_dict = dtypes[0]
+            encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
+                                                                                                          dtypes_dict)
+            baseline_performance_plot = plot_and_transform_functions.baseline_model_performance(encoded_dataframe, target, dtypes_dict)
+            return dcc.Graph(figure = baseline_performance_plot)
 
 
 if __name__ == '__main__':

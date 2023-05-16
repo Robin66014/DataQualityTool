@@ -11,6 +11,7 @@ import cleanlab
 from xgboost import XGBClassifier
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
+from plot_and_transform_functions import dash_datatable_format_fix
 
 amount_of_columns = 999999999
 amount_of_samples = 10000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
@@ -28,6 +29,7 @@ def class_imbalance(dataset):
     resultDF = pd.DataFrame(result, index=[0])
     # fig = px.bar(resultDF) #plotly image for in Dash application
     # fig.show()
+    resultDF = dash_datatable_format_fix(resultDF)
     return resultDF, fig
 
 
@@ -45,13 +47,14 @@ def conflicting_labels(dataset):
     else:
         resultDF = resultConflictingLabels.display[1]
 
+    resultDF = dash_datatable_format_fix(resultDF)
+
     return resultDF, percentage
 
 
 def cleanlab_label_error(encoded_dataset, target):
     """"Function that finds potential label errors (due to annotator mistakes), edge cases, and otherwise ambiguous examples"""
     model_XGBC = XGBClassifier(tree_method="hist", enable_categorical=True)  # hist is fastest tree method of XGBoost, use default model
-    # TODO: def main problem? testen
 
     data_no_labels = encoded_dataset.drop(columns=[target])
     labels = encoded_dataset[target]
@@ -66,10 +69,14 @@ def cleanlab_label_error(encoded_dataset, target):
     #use cleanlabs built in confident learning method to find label issues
     cl = cleanlab.classification.CleanLearning()
     issues_dataframe = cl.find_label_issues(X=None, labels=labels, pred_probs=pred_probs)
+    issues_dataframe = issues_dataframe.reset_index()
+
     wrong_label_count = (issues_dataframe['is_label_issue'] == True).sum()
 
     #filter df so only errors are visible
     issues_dataframe_only_errors = issues_dataframe[issues_dataframe['is_label_issue'] == True]
+    issues_dataframe = dash_datatable_format_fix(issues_dataframe)
+    issues_dataframe_only_errors = dash_datatable_format_fix(issues_dataframe_only_errors)
 
     return issues_dataframe, issues_dataframe_only_errors, wrong_label_count
 
