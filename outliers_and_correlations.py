@@ -89,9 +89,7 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
         return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR": [e]}), 0, 0
 
 
-def outliers_per_column(df):
 
-    return None
 
 
 ## for testing purposes

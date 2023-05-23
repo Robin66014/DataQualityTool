@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.svm import SVC, SVR
 from sklearn.metrics import accuracy_score, mean_squared_error
-
+from pandas.api.types import is_numeric_dtype
 from scipy.stats import shapiro, anderson, kstest, normaltest
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import missingno as msno
@@ -18,7 +18,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from category_encoders.target_encoder import TargetEncoder
 from sklearn.model_selection import train_test_split
-
+import plotly.graph_objects as go
 # def test_normality(dataset, column_types):
 #     """
 #     Performs normality tests on all numeric columns of a dataset and returns the test results.
@@ -61,8 +61,9 @@ from sklearn.model_selection import train_test_split
 #     return test_results
 
 
-def check_dimensionality():
-    #TODO: waarschuwing geven als dimensionality te groot (te veel features / te weinig instances heeft)
+def check_dimensionality(df):
+    if len(df)/len(df.columns) < 10:
+        return
     return None
 
 
@@ -93,6 +94,16 @@ def pandas_dq_report(dataset, target):
     #TODO: additional remarks; total outliers based on all column values, fairness warnings, few instances compared to amount of columns
 
     return reportDF
+
+
+def extend_dq_report():
+    #TODO: functie voor aanvullen dq report met rest van checks + general warnings (niet kolom specifieke waarschuwingen)
+
+    return None
+
+
+
+
 def encode_categorical_columns(dataset, target, dtypes):
     """"Function that one-hot-encodes categorical columns and label encodes the target column. It returns the encoded dataset
     and the mapping of the original labels to the encoded labels"""
@@ -144,6 +155,25 @@ def encode_categorical_columns(dataset, target, dtypes):
     #print('@@@@@@@@@@@@@@@@@@@@@', type(dataset_encoded))
 
     return dataset_encoded, mapping
+
+def label_encode_dataframe(df, dtypes):
+    label_encoded_dict = {}
+
+    for column in df.columns:
+        if dtypes[column] == 'categorical' or dtypes[column] == 'boolean' and not is_numeric_dtype(df[column]):
+            unique_values = df[column].unique()
+            label_encoded_dict[column] = {}
+            for i, value in enumerate(unique_values):
+                label_encoded_dict[column][value] = i
+            df[column] = df[column].map(label_encoded_dict[column])
+            # Create a DataFrame from the nested dictionary
+            mapping_df = pd.DataFrame.from_dict([(key, tuple(val.items())) for key, val in label_encoded_dict.items()])
+            mapping_df.columns = ['Column name', 'Encoding mapping']
+            #modifications to the dataframe to makeit Dash.datatable-proof as it doesnt accept lists
+            #mapping_df['Encoding mapping'] = mapping_df['Encoding mapping'].apply(lambda x: [list(t) for t in x])
+            mapping_df['Encoding mapping'] = mapping_df['Encoding mapping'].apply(lambda x: str(x)[1:-1])
+
+    return df, mapping_df
 
 def pcp_plot(encoded_df, target):
     #TODO: tekst/lookup table toevoegen met conversie categorische variabelen encoding als dictionary
@@ -210,7 +240,7 @@ def plot_dataset_distributions(data, dtypes):
     # each datatypre requires different plotting
     for col in data.columns:
         # histogram for numerical values
-        if dtypes[col] == 'floating' or dtypes[col] == 'numeric' or dtypes[col] == 'integer':
+        if dtypes[col] == 'floating' or dtypes[col] == 'integer':
             fig = px.histogram(data, x=col, title=f'{col} distribution')
             figs.append(fig)
 
@@ -286,6 +316,26 @@ def baseline_model_performance(dataset, target, dtypes):
     fig.update_traces(textposition='outside')
     return fig
 
+def box_plot(df, dtypes):
+
+    numerical_columns = []
+    for col in df.columns:
+        # histogram for numerical values
+        if dtypes[col] == 'floating' or dtypes[col] == 'integer':
+            numerical_columns.append(col)
+            # Add traces for each numerical column
+    data = []
+    for column in numerical_columns:
+        data.append(go.Box(y=df[column], name=column))
+
+    layout = go.Layout(
+    title="Numerical Column Visualization for identifying column outliers",
+    yaxis_title="Value"
+                        )
+    fig = go.Figure(data=data, layout=layout)
+
+
+    return fig
 
 def clean_dataset(df):
     #same as from helper.py of openML

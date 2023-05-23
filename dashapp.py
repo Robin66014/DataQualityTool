@@ -26,7 +26,7 @@ import plot_and_transform_functions
 import testingFile
 #df = pd.read_csv('datasets\Iris.csv')
 sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url',
-                           'embedded-number', 'list', 'context-specific', 'numeric']
+                           'embedded-number', 'list', 'context-specific']
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']#[dbc.themes.SUPERHERO]#
 
 button_style = {'background-color': 'blue',
@@ -112,6 +112,9 @@ def parse_contents(contents, filename, date):
                 i: {'options': [{'label': j, 'value': j} for j in
                                        sortingHatInf_datatypes]} for i in
                 featureTypeTable.columns},
+            style_table={
+                'overflowX': 'scroll'
+            }
             # style_table={
             #     'overflowX': 'scroll'}
         ),
@@ -201,8 +204,9 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         distribution_figures = plot_and_transform_functions.plot_dataset_distributions(df, dtypes_dict) #list of all column data distribution figures
         data_distribution_figures_div = html.Div([dcc.Graph(id='multi_' + str(i), figure=distribution_figures[i], style={'display': 'inline-block', 'width': '30vh', 'height': '30vh'}) for i in range(len(distribution_figures))])
         #missingno_plot = plot_and_transform_functions.missingno_plot(df)
-        pcp_plot = plot_and_transform_functions.pcp_plot(encoded_dataframe, target) #TODO: probleem; grote datasets encoding tript, target encoden?
-
+        label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
+        pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target) #TODO: probleem; grote datasets encoding tript, target encoden?
+        box_plot = plot_and_transform_functions.box_plot(df, dtypes_dict)
 
         if target != 'None': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
@@ -240,17 +244,23 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                                                 html.P('Checks the type and amount of missing values. The potential total missingness is the'
                                                        ' percent missing plus the percentage of zeros.',
                                                     style={'textAlign': 'center'}),
-                                                dash_table.DataTable(df_missing_values.to_dict('records')),
+                                                dash_table.DataTable(df_missing_values.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
                                                 html.Hr(),
                                                 html.H6('Duplicates check', style={'textAlign': 'center'}),
                                                 html.P('Checks whether there are any duplicates and displays the row numbers of the  duplicate instances.',
                                                     style={'textAlign': 'center'}),
-                                                dash_table.DataTable(df_duplicates.to_dict('records')),
+                                                dash_table.DataTable(df_duplicates.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
                                                 html.H6('Duplicate columns check', style={'textAlign': 'center'}),
                                                 html.P(
                                                     'Checks whether there are any exact duplicate columns (which slows down the training time of your ML model).',
                                                     style={'textAlign': 'center'}),
-                                                dash_table.DataTable(df_duplicate_columns.to_dict('records')),
+                                                dash_table.DataTable(df_duplicate_columns.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
                                                 #dcc.Graph(figure=mpl_to_plotly(missingno_plot))
                                                ]
                             ),
@@ -262,27 +272,35 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                     [
                         dmc.AccordionControl("Type integrity ({})".format(36)),
                         dmc.AccordionPanel([html.H6('Amount of distinct values per column', style={'textAlign':'center'}),
-                                            html.P('Checks the amount of different values for each column.',
+                                            html.P('Checks the amount of different values for each column, consisting in the {} samples.'.format(len(df)),
                                                     style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_amount_of_diff_values.to_dict('records')),
+                                            dash_table.DataTable(df_amount_of_diff_values.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
                                             html.Hr(),
 
                                             html.H6('Mixed data types check',
                                                     style={'textAlign': 'center'}),
                                             html.P('Checks for different data types in your dataset, and displays some random samples.',
                                                    style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_mixed_data_types.to_dict('records')), #TODO: fix error
+                                            dash_table.DataTable(df_mixed_data_types.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }), #TODO: fix error
                                             html.Hr(),
 
                                             html.H6("Special characters check", style={'textAlign': 'center'}),
                                             html.P("checks for characters like '?!$^&#'.", style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_special_characters.to_dict('records')),
+                                            dash_table.DataTable(df_special_characters.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
                                             html.Hr(),
                                             html.H6("String mismatch / cell entity check",
                                                     style={'textAlign': 'center'}),
                                             html.P("Checks for strings that have the same base form, like 'red', 'Red', 'RED!' (base form 'red' ).",
                                                    style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_string_mismatch.to_dict('records'))]
+                                            dash_table.DataTable(df_string_mismatch.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        })]
                         ),
                     ],
                     value="typeintegrity",
@@ -298,7 +316,20 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                                             dash_table.DataTable(df_outliers.to_dict('records'), style_table={'overflowX': 'scroll'}),
                                             html.P("{} outliers have been found above the set probability threshold of {}.".format(amount_of_outliers, threshold),
                                                    style={'textAlign': 'center'}),
+                                            html.P(
+                                                "The parallel coordinates plot below can be used to identify outliers and correlations in your dataset",
+                                                style={'textAlign': 'center'}),
                                             dcc.Graph(figure=pcp_plot),
+                                            html.P(
+                                                "Lookup table for the label mappings.",
+                                                style={'textAlign': 'center'}),
+                                            dash_table.DataTable(label_mapping.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
+                                            html.P(
+                                                "Potential outliers are visualized in the boxplot below.",
+                                                style={'textAlign': 'center'}),
+                                            dcc.Graph(figure=box_plot),
                                             html.Hr(),
                                             html.H6("Feature-feature correlation check",
                                                     style={'textAlign': 'center'}),
@@ -308,14 +339,15 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                                                    " numerical-categorical: Correlation ratio"
                                                    " categorical-categorical: Symmetric Theil’s U.",
                                                    style={'textAlign': 'center'}),
-                                            #dash_table.DataTable(df_feature_feature_correlation.to_dict('records')),
                                             dcc.Graph(figure=correlationFig),
                                             html.Hr(),
                                             html.H6("Feature-label correlation check", style={'textAlign': 'center'}),
                                             html.P("Computes the correlation between each feature and the label, "
                                                    "in a similar fashion as the feature-feature correlation.",
                                                    style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_feature_label_correlation.to_dict('records'))]
+                                            dash_table.DataTable(df_feature_label_correlation.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        })]
                         ),
                     ],
                     value="outliersandcorrelations",
@@ -326,13 +358,17 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                         dmc.AccordionPanel([html.H6('Class imbalance check', style={'textAlign':'center'}),
                                             html.P('Checks the distribution of instances per label.',
                                                     style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_class_imbalance.to_dict('records')),#TODO: checken hoe dit zit bij regression
+                                            dash_table.DataTable(df_class_imbalance.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),#TODO: checken hoe dit zit bij regression
                                             html.Hr(),
                                             html.H6('Conflicting labels check',
                                                     style={'textAlign': 'center'}),
                                             html.P('Checks for instances with exactly the same feature values, but different labels (which can confuse your ML model).',
                                                    style={'textAlign': 'center'}),
-                                            dash_table.DataTable(df_conflicting_labels.to_dict('records')),
+                                            dash_table.DataTable(df_conflicting_labels.to_dict('records'), style_table={
+                                                                            'overflowX': 'scroll'
+                                                                        }),
                                             html.P("There are {}% conflicting labels.".format(percent_conflicting), style={'textAlign': 'center'}),
 
 
