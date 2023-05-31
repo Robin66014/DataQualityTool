@@ -63,7 +63,8 @@ import plotly.graph_objects as go
 
 def check_dimensionality(df):
     if len(df)/len(df.columns) < 10:
-        return
+        return "You have very few instances ({}) compared to the number of features ({}). It is recommended to have at least 10 times more " \
+               "instances than features".format(len(df), len(df.columns))
     return None
 
 
@@ -152,7 +153,6 @@ def encode_categorical_columns(dataset, target, dtypes):
     #XGBClassifier doesn't accept: [, ] or <, so loop over the columns and change the names if they contain such values
     new_col_names = {col: col.replace('<', '(smaller than)').replace('[', '(').replace(']', ')') for col in dataset_encoded.columns}
     dataset_encoded = dataset_encoded.rename(columns=new_col_names)
-    #print('@@@@@@@@@@@@@@@@@@@@@', type(dataset_encoded))
 
     return dataset_encoded, mapping
 
@@ -176,7 +176,6 @@ def label_encode_dataframe(df, dtypes):
     return df, mapping_df
 
 def pcp_plot(encoded_df, target):
-    #TODO: tekst/lookup table toevoegen met conversie categorische variabelen encoding als dictionary
     #TODO: clean dataset?
     if target != 'None':
         fig = px.parallel_coordinates(encoded_df, color=target)
@@ -197,7 +196,7 @@ def plot_feature_importance(df, target, dtypes):
     #split target from data
     x = df.drop(columns=[target])
     y = df[target]
-    # TODO: clean dataset?
+    #TODO: clean dataset?
     if dtypes[target] == 'boolean' or dtypes[target] == 'categorical':
 
         le = LabelEncoder()
@@ -208,11 +207,7 @@ def plot_feature_importance(df, target, dtypes):
     else:
         x = te.fit_transform(x, y)
         rf = RandomForestRegressor(n_estimators=10, n_jobs=-1)
-        #TODO: regression
-
-    #train random forest classifier / regressor depending on task type
-    #TODO: werkend voor regression maken (afhangend van dtypes)
-
+        rf.fit(x, y)
 
     #obtain feature importances
     feature_importances = rf.feature_importances_

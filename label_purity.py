@@ -13,14 +13,14 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
 from plot_and_transform_functions import dash_datatable_format_fix
 
-amount_of_columns = 999999999
-amount_of_samples = 10000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
+amount_of_columns = 100000
+amount_of_samples = 100000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
 
 
 def class_imbalance(dataset):
     """"Function that checks the distribution of the target variable / label"""
 
-    #TODO: rekening houden dat deze test irrelevant is voor sommige (regression) problems
+    #TODO: rekening houden dat deze test irrelevant is voor regression of labelless problems
     checkClassImbalance = deepchecks.tabular.checks.ClassImbalance(n_top_labels=amount_of_columns)
     resultClassImbalance = checkClassImbalance.run(dataset)
 
@@ -35,7 +35,8 @@ def class_imbalance(dataset):
 
 def conflicting_labels(dataset):
     """"Function that checks for datapoints with exactly the same feature values, but different labels"""
-
+    #TODO: n to show checken
+    # TODO: rekening houden dat deze test irrelevant is voor regression of labelless problems
     checkConflictingLabels = deepchecks.tabular.checks.ConflictingLabels(n_to_show=20)
     resultConflictingLabels = checkConflictingLabels.run(dataset)
 
@@ -46,6 +47,10 @@ def conflicting_labels(dataset):
         resultDF = pd.DataFrame({"Message": ["No conflicting labels encountered"]})
     else:
         resultDF = resultConflictingLabels.display[1]
+        resultDF.reset_index(inplace=True)
+        columns = resultDF.columns.tolist()
+        columns[2] = 'Feature values'
+        resultDF.columns = columns
 
     resultDF = dash_datatable_format_fix(resultDF)
 
@@ -55,6 +60,7 @@ def conflicting_labels(dataset):
 def cleanlab_label_error(encoded_dataset, target):
     """"Function that finds potential label errors (due to annotator mistakes), edge cases, and otherwise ambiguous examples"""
     model_XGBC = XGBClassifier(tree_method="hist", enable_categorical=True)  # hist is fastest tree method of XGBoost, use default model
+    # TODO: rekening houden dat deze test irrelevant is voor regression of labelless problems
 
     data_no_labels = encoded_dataset.drop(columns=[target])
     labels = encoded_dataset[target]

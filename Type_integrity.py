@@ -9,8 +9,8 @@ import numpy as np
 from plot_and_transform_functions import dash_datatable_format_fix
 data = pd.read_csv('datasets\Iris.csv')
 #dataset = Dataset(data, label = 'Species')
-amount_of_columns = 999999999
-amount_of_samples = 999999999
+amount_of_columns = 100000
+amount_of_samples = 100000
 
 
 

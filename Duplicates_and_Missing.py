@@ -7,8 +7,8 @@ from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
 from plot_and_transform_functions import dash_datatable_format_fix
 
-amount_of_columns = 999999999
-amount_of_samples = 999999999
+amount_of_columns = 100000
+amount_of_samples = 100000
 
 def missing_values(dataset):
     """"Checks the amount of missing values, and the types of missing values: numpy.NaN, None, '', ..."""

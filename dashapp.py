@@ -9,7 +9,7 @@ import base64
 from dash.dependencies import Input, Output, State
 
 
-
+import time
 import arff
 from sklearn.preprocessing import LabelEncoder
 import dash_mantine_components as dmc
@@ -25,8 +25,9 @@ import label_purity
 import plot_and_transform_functions
 import testingFile
 #df = pd.read_csv('datasets\Iris.csv')
-sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url',
-                           'embedded-number', 'list', 'context-specific']
+#sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
+sortingHatInf_datatypes = ['not-generalizable', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']#[dbc.themes.SUPERHERO]#
 
 button_style = {'background-color': 'blue',
@@ -72,6 +73,7 @@ app.layout = html.Div([
 ])
 
 def parse_contents(contents, filename, date):
+    time.sleep(2)
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
 
@@ -113,8 +115,7 @@ def parse_contents(contents, filename, date):
                                        sortingHatInf_datatypes]} for i in
                 featureTypeTable.columns},
             style_table={
-                'overflowX': 'scroll'
-            }
+                'overflowX': 'scroll', 'height': '250px'}
             # style_table={
             #     'overflowX': 'scroll'}
         ),
@@ -142,6 +143,9 @@ def parse_contents(contents, filename, date):
         dcc.Store(id='stored-data', data = df.to_dict('records'), storage_type='memory'), #TODO: aanpassen pickle oid?
         html.Hr(),  # horizontal line
     ])
+
+
+
 @app.callback(
     [Output('dd-output-container', 'children'), Output('output-div', 'children')],
     [Input('targetColumn', 'value')]#, Input('submit-button','n_clicks'), State('targetColumn','targetvalue')]
@@ -155,6 +159,7 @@ def update_output(value):#, n, target):
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
 def update_output(list_of_contents, list_of_names, list_of_dates):
+    time.sleep(2)
     if list_of_contents is not None:
         children = [
             parse_contents(c, n, d) for c, n, d in
@@ -172,7 +177,13 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
     if n_clicks >= 1: #run checks button clicked
         dtypes_dict = dtypes[0]
-        print('@@@@@@@@@@@@@@@@@@@@@@@@@@@dtypes_dict', dtypes_dict)
+        task_type = 'other'
+        if target != 'None':
+            if dtypes_dict[target] == 'categorical' or dtypes_dict[target] == 'boolean':
+                task_type = 'classification'
+            else:
+                task_type = 'regression'
+
         df = pd.DataFrame(df_json) #deserialize JSON string stored in web browser
         ds = createDatasetObject(df, dtypes_dict, target)
         #TODO: convert to Deepchecks datasets, keep in mind length error
@@ -205,24 +216,27 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         data_distribution_figures_div = html.Div([dcc.Graph(id='multi_' + str(i), figure=distribution_figures[i], style={'display': 'inline-block', 'width': '30vh', 'height': '30vh'}) for i in range(len(distribution_figures))])
         #missingno_plot = plot_and_transform_functions.missingno_plot(df)
         label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
-        pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target) #TODO: probleem; grote datasets encoding tript, target encoden?
+        pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target)
         box_plot = plot_and_transform_functions.box_plot(df, dtypes_dict)
 
-        if target != 'None': #target column supplied
+        if task_type == 'classification': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
 
             #label purity checks
             df_class_imbalance, _ = label_purity.class_imbalance(ds)
             df_conflicting_labels, percent_conflicting = label_purity.conflicting_labels(ds)
-        else: #no target column selected
+        else: #no target column selected or not a classification problem, thus not applicable
             df_feature_label_correlation = pd.DataFrame({
-                "Message": ["This check is not applicable as there is no target column selected"]})
+                "Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+                            " is not a classification problem"]})
             df_conflicting_labels = pd.DataFrame(
-                {"Message": ["This check is not applicable as there is no target column selected"]})
+                {"Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+                             " is not a classification problem"]})
             percent_conflicting = 0
             df_class_imbalance = pd.DataFrame(
-                {"Message": ["This check is not applicable as there is no target column selected"]})
-            fig_class_imbalance = html.Div()
+                {"Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+                             " is not a classification problem"]})
+            #fig_class_imbalance = html.Div()
 
         return html.Div([#Data issue / check results section
                 html.H6('Profiling report and issue overview', style={'textAlign':'center'}),
@@ -285,7 +299,7 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                                                    style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_mixed_data_types.to_dict('records'), style_table={
                                                                             'overflowX': 'scroll'
-                                                                        }), #TODO: fix error
+                                                                        }),
                                             html.Hr(),
 
                                             html.H6("Special characters check", style={'textAlign': 'center'}),
@@ -427,23 +441,6 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         html.Hr()
 
 
-# @app.callback(
-#     [Output('cleanlab_table', 'children'),Output('amount_of_label_errors', 'children')],
-#     [Input('run-checks-button', 'n_clicks'),
-#      State('stored-data', 'data'),
-#      State('dtypes_dropdown', 'data'),
-#      State('targetColumn', 'value')]
-# )
-# def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
-#     if n_clicks >= 1: #run checks button clicked
-#         if target != 'None':
-#             df = pd.DataFrame(df_json)
-#             dtypes_dict = dtypes[0]
-#             encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
-#                                                                                                           dtypes_dict)
-#             _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
-#             return dash_table.DataTable(issues_dataframe_only_errors.to_dict('records')), f'Cleanlab detected {wrong_label_count} potential label errors'
-
 @app.callback(
     Output('feature_importance_plot_div', 'children'),
     [Input('run-checks-button', 'n_clicks'),
@@ -460,6 +457,8 @@ def feature_importance_plot(n_clicks, df_json, dtypes, target):#, n, target):
             dtypes_dict = dtypes[0]
             feature_importance_plot = plot_and_transform_functions.plot_feature_importance(df, target, dtypes_dict)
             return dcc.Graph(figure = feature_importance_plot)
+        else:
+            return html.P('NOT APPLICABLE: The feature importance plot is not applicable when no target column is selected')
 
 
 @app.callback(
@@ -477,9 +476,13 @@ def bias_graph(bias_dropdown, df_json, target):
             # then atleast one sensitive feature that is not the target is selected, plot the analysis
             df = pd.DataFrame(df_json)
             df = plot_and_transform_functions.clean_dataset(df)
-            sensitive_feature_combinations_table = fairness_checks.sensitive_feature_combinations(df,bias_dropdown, target, bins=5)
-            stacked_bar_chart_fig = fairness_checks.plot_stacked_barchart(sensitive_feature_combinations_table)
-            return dcc.Graph(figure=stacked_bar_chart_fig)
+            if target != 'None':
+                sensitive_feature_combinations_table = fairness_checks.sensitive_feature_combinations(df,bias_dropdown, target, bins=5)
+                stacked_bar_chart_fig = fairness_checks.plot_stacked_barchart(sensitive_feature_combinations_table)
+                return dcc.Graph(figure=stacked_bar_chart_fig)
+            else:
+                return html.P('NOT APPLICABLE: The feature importance plot is not applicable when no target column is selected')
+
 
 
 
@@ -493,12 +496,28 @@ def bias_graph(bias_dropdown, df_json, target):
 def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
     if n_clicks >= 1: #run checks button clicked
         if target != 'None':
-            df = pd.DataFrame(df_json)
             dtypes_dict = dtypes[0]
-            df = plot_and_transform_functions.clean_dataset(df)
-            encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
-                                                                                                          dtypes_dict)
-            _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
+            task_type = 'other'
+            if target != 'None':
+                if dtypes_dict[target] == 'categorical' or dtypes_dict[target] == 'boolean':
+                    task_type = 'classification'
+                else:
+                    task_type = 'regression'
+
+            #label erros can only be detected when the task at hand is a classification task
+            if task_type == 'classification':
+                df = pd.DataFrame(df_json)
+
+                df = plot_and_transform_functions.clean_dataset(df)
+                encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
+                                                                                                              dtypes_dict)
+                _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
+            else:
+                issues_dataframe_only_errors = pd.DataFrame(
+                {"Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+                             " is not a classification problem"]})
+                wrong_label_count = 0
+
             return dmc.Accordion(
                                 children=[
                                     dmc.AccordionItem(
