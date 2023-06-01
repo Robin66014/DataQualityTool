@@ -7,13 +7,13 @@ import io
 import datetime
 import base64
 from dash.dependencies import Input, Output, State
-
-
+# from flask_caching import Cache
+import uuid
 import time
 import arff
 from sklearn.preprocessing import LabelEncoder
 import dash_mantine_components as dmc
-
+import os
 from DataTypeInference import obtain_feature_type_table, createDatasetObject
 import fairness_checks
 import duplicates_and_missing
@@ -37,6 +37,14 @@ button_style = {'background-color': 'blue',
                     'margin-left': '50px'}
 #app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
+current_directory = os.path.dirname(os.path.realpath('dashapp2.py'))
+cache_dir = os.path.join(current_directory, 'cached_files')
+# Configure the cache
+# cache = Cache(app.server, config={
+#     'CACHE_TYPE': 'filesystem',
+#     'CACHE_DIR': cache_dir  # Directory where cache files will be stored
+# })
+
 app.title = "Data quality toolkit"
 
 app.layout = html.Div([
@@ -62,8 +70,9 @@ app.layout = html.Div([
         # Allow multiple files to be uploaded
         multiple=True
     ),
-    html.Div(id='output-div'),
-    html.Div(id='output-data-upload'),
+    dcc.Loading(children=html.Div(id='output-data-upload'), type = 'circle'),
+
+
     #dcc.Graph(figure=fig)
 
 
@@ -72,9 +81,22 @@ app.layout = html.Div([
 
 ])
 
+@app.callback(Output('output-data-upload', 'children'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'),
+              State('upload-data', 'last_modified'))
+def update_output(list_of_contents, list_of_names, list_of_dates):
+    if list_of_contents is not None:
+        children = [
+            parse_contents(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_names, list_of_dates)]
+        return children
+
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
+    filepath = generate_filepath(filename)
+
 
     try:
         if '.csv' in filename:
@@ -88,6 +110,7 @@ def parse_contents(contents, filename, date):
             data = arff.load(io.StringIO(decoded.decode('utf-8')))
             columns = [attr[0] for attr in data['attributes']]
             df = pd.DataFrame(data['data'], columns=columns)
+        df.to_pickle(filepath)
         featureTypeTable = obtain_feature_type_table(df)
         #settings.first_time = True
     except Exception as e:
@@ -101,7 +124,8 @@ def parse_contents(contents, filename, date):
         html.P('Choose your target column'),
         dcc.Dropdown(id="targetColumn", options=[{'label':'None', 'value':'None'}] + [{'label':x, 'value':x} for x in df.columns], value = 'None'),
         #html.Button(id='submit-button', children='Run checks'),
-        html.Div(id='dd-output-container'),
+        html.Div(id='target-selected-container'),
+        dcc.Store(id='stored-filepath', data=filepath, storage_type='memory'),
 
         #Feature type table
         dash_table.DataTable(
@@ -121,9 +145,10 @@ def parse_contents(contents, filename, date):
         html.Button('Run data quality checks', id='run-checks-button', n_clicks=0, style=button_style),
         html.Hr(),  # horizontal line
 
+        html.Div(dcc.Loading(children=html.Div(id='container-checks-button-pressed'), type='cube')),
+        html.Div(dcc.Loading(children=html.Div(id='bias_and_feature_information_accordion'), type='circle')),
+        html.Div(dcc.Loading(children=html.Div(id='long_running_time_accordion'), type='circle')), #TODO boosdoener traagheid
 
-        dcc.Loading(children=html.Div(id='container-checks-button-pressed'), type =  'cube'),
-        dcc.Loading(children=html.Div(id='long_running_time_accordion'), type='circle'),
 
         #Dataset overview section
         html.H6('Dataset overview', style={'textAlign': 'center'}),
@@ -139,41 +164,27 @@ def parse_contents(contents, filename, date):
                 'overflowX': 'scroll'
             }
         ),
-        dcc.Store(id='stored-data', data = df.to_dict('records'), storage_type='memory'), #TODO: aanpassen pickle oid?
+        #dcc.Store(id='stored-data', data = df.to_dict('records'), storage_type='memory'), #TODO: aanpassen pickle oid?
         html.Hr(),  # horizontal line
     ])
-
-
-
 @app.callback(
-    [Output('dd-output-container', 'children'), Output('output-div', 'children')],
-    [Input('targetColumn', 'value')]#, Input('submit-button','n_clicks'), State('targetColumn','targetvalue')]
+    Output('target-selected-container', 'children'),
+    Input('targetColumn', 'value')#, Input('submit-button','n_clicks'), State('targetColumn','targetvalue')]
 )
-def update_output(value):#, n, target):
-    return f'You have selected {value}, as your target column', dash.no_update
+def display_selected_target_column(value):#, n, target):
+    return f'You have selected {value}, as your target column'
 
 
-@app.callback(Output('output-data-upload', 'children'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
-def update_output(contents, names, dates):
-    if contents[0] is not None:
-        #filepath = generate_filepath(name)
-        print('@@@@@@@@@@@@@@@@@@@name', names[0], 'date', dates[0])
-        children = [parse_contents(contents[0], names[0], dates[0])]
-
-        return children
 
 
 @app.callback(
     Output('container-checks-button-pressed', 'children'),
     [Input('run-checks-button', 'n_clicks'),
-     State('stored-data', 'data'),
+     State('stored-filepath', 'data'),
      State('dtypes_dropdown', 'data'),
      State('targetColumn', 'value')]
 )
-def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
+def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
     if n_clicks >= 1: #run checks button clicked
         dtypes_dict = dtypes[0]
         task_type = 'other'
@@ -183,7 +194,7 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
             else:
                 task_type = 'regression'
 
-        df = pd.DataFrame(df_json) #deserialize JSON string stored in web browser
+        df = fetch_data(filepath) #deserialize JSON string stored in web browser
         ds = createDatasetObject(df, dtypes_dict, target)
         #TODO: convert to Deepchecks datasets, keep in mind length error
 
@@ -197,7 +208,6 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
         df_mixed_data_types = type_integrity.mixed_data_types(df)
         df_special_characters = type_integrity.special_characters(df)
-        #print(df_special_characters)
         df_string_mismatch = type_integrity.string_mismatch(df)
 
         #outliers & correlations
@@ -211,18 +221,20 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
         encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target, dtypes_dict)
 
         #plots
-        distribution_figures = plot_and_transform_functions.plot_dataset_distributions(df, dtypes_dict) #list of all column data distribution figures
-        data_distribution_figures_div = html.Div([dcc.Graph(id='multi_' + str(i), figure=distribution_figures[i], style={'display': 'inline-block', 'width': '30vh', 'height': '30vh'}) for i in range(len(distribution_figures))])
+        # distribution_figures = plot_and_transform_functions.plot_dataset_distributions(df, dtypes_dict) #list of all column data distribution figures
+        # data_distribution_figures_div = html.Div([dcc.Graph(id='multi_' + str(i), figure=distribution_figures[i], style={'display': 'inline-block', 'width': '30vh', 'height': '30vh'}) for i in range(len(distribution_figures))])
         #missingno_plot = plot_and_transform_functions.missingno_plot(df)
         label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
         pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target)
-        box_plot = plot_and_transform_functions.box_plot(df, dtypes_dict)
+        print(df)
+        print(dtypes_dict)
+        box_plot = plot_and_transform_functions.box_plot(df, dtypes_dict) #TODO checken
 
         if task_type == 'classification': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
 
             #label purity checks
-            df_class_imbalance, _ = label_purity.class_imbalance(ds)
+            df_class_imbalance, fig_class_imbalance = label_purity.class_imbalance(ds)
             df_conflicting_labels, percent_conflicting = label_purity.conflicting_labels(ds)
         else: #no target column selected or not a classification problem, thus not applicable
             df_feature_label_correlation = pd.DataFrame({
@@ -342,7 +354,7 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                                             html.P(
                                                 "Potential outliers are visualized in the boxplot below.",
                                                 style={'textAlign': 'center'}),
-                                            dcc.Graph(figure=box_plot),
+                                            dcc.Graph(figure=box_plot), #TODO: checken
                                             html.Hr(),
                                             html.H6("Feature-feature correlation check",
                                                     style={'textAlign': 'center'}),
@@ -391,47 +403,7 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
                     ],
                     value="labelpurity",
                 ),
-                dmc.AccordionItem(
-                    [
-                        dmc.AccordionControl("Bias & feature information ({})".format(36)),
-                        dmc.AccordionPanel([
-                            #Data distribution plots
-                            html.H6('Data distribution', style={'textAlign': 'center'}),
-                            # data distribution plots
-                            html.P(
-                                'The following plots give insights into the datasets central tendency and spread. Each plot represents a variables distribution,'
-                                ' with the x-axis showing its value and the y-axis indicating the frequency/proportion of data points with that value.',
-                                style={'textAlign': 'center'}),
 
-                            data_distribution_figures_div,
-                            html.Hr(),
-
-                            #Feature importance plot
-                            html.H6('Feature importance analysis', style={'textAlign': 'center'}),
-                            html.P('Displays the feature importance based on target encoded values.',
-                                style={'textAlign': 'center'}),
-                            dcc.Loading(
-                            id="loading-2",
-                            children=html.Div(id="feature_importance_plot_div")),
-                            html.Hr(),
-
-                            #Subgroup bias analysis
-                            html.H6('Bias analysis', style={'textAlign': 'center'}),
-                            html.P(
-                                'In the dropdown menu below, select the sensitive features (if any) that exist in your dataset. The bar chart indicates the amount of times'
-                                'a specific sensitive subgroup appears in your dataset, and the distribution of the class label for that subgroup'
-                                'NOTE: it can take a while in order for the chart to be displayed.',
-                                style={'textAlign': 'center'}),
-                            dcc.Dropdown(id="biasDropdown",
-                                         options=[{'label': x, 'value': x} for x in df.columns], multi=True,
-                                         placeholder="Select sensitive feature(s)"),
-                            dcc.Loading(
-                                id="loading-3",
-                                children=html.Div(id="biasGraph")),
-                        ]),
-                    ],
-                    value="biasandfairness",
-                ),
             ],
         )
         ]
@@ -441,17 +413,89 @@ def run_checks(n_clicks, df_json, dtypes, target):#, n, target):
 
 
 @app.callback(
-    Output('feature_importance_plot_div', 'children'),
+    Output('bias_and_feature_information_accordion', 'children'),
     [Input('run-checks-button', 'n_clicks'),
-     State('stored-data', 'data'),
+     State('stored-filepath', 'data'),
      State('dtypes_dropdown', 'data'),
      State('targetColumn', 'value')]
 )
-def feature_importance_plot(n_clicks, df_json, dtypes, target):#, n, target):
+def bias_and_feature_information_accordion(n_clicks, filepath, dtypes, target):#, n, target):
+    if n_clicks >= 1: #run checks button clicked
+        dtypes_dict = dtypes[0]
+        task_type = 'other'
+        if target != 'None':
+            if dtypes_dict[target] == 'categorical' or dtypes_dict[target] == 'boolean':
+                task_type = 'classification'
+            else:
+                task_type = 'regression'
+
+        df = fetch_data(filepath)
+
+        #df = plot_and_transform_functions.clean_dataset(df)
+        distribution_figures = plot_and_transform_functions.plot_dataset_distributions(df, dtypes_dict) #list of all column data distribution figures
+        data_distribution_figures_div = html.Div([dcc.Graph(id='multi_' + str(i), figure=distribution_figures[i], style={'display': 'inline-block', 'width': '30vh', 'height': '30vh'}) for i in range(len(distribution_figures))])
+
+
+        return dmc.Accordion(
+                            children=[
+                                dmc.AccordionItem(
+                                    [
+                                        dmc.AccordionControl("Bias & feature information ({})".format(36)),
+                                        dmc.AccordionPanel([
+                                            # Data distribution plots
+                                            html.H6('Data distribution', style={'textAlign': 'center'}),
+                                            # data distribution plots
+                                            html.P(
+                                                'The following plots give insights into the datasets central tendency and spread. Each plot represents a variables distribution,'
+                                                ' with the x-axis showing its value and the y-axis indicating the frequency/proportion of data points with that value.',
+                                                style={'textAlign': 'center'}),
+
+                                            data_distribution_figures_div,
+                                            html.Hr(),
+
+                                            # Feature importance plot
+                                            html.H6('Feature importance analysis', style={'textAlign': 'center'}),
+                                            html.P(
+                                                'Displays the feature importance based on target encoded values.',
+                                                style={'textAlign': 'center'}),
+                                            dcc.Loading(
+                                                id="loading-2",
+                                                children=html.Div(id="feature_importance_plot_div")),
+                                            html.Hr(),
+
+                                            # Subgroup bias analysis
+                                            html.H6('Bias analysis', style={'textAlign': 'center'}),
+                                            html.P(
+                                                'In the dropdown menu below, select the sensitive features (if any) that exist in your dataset. The bar chart indicates the amount of times'
+                                                ' a specific sensitive subgroup appears in your dataset, and the distribution of the class label for that subgroup'
+                                                ' NOTE: it can take a while in order for the chart to be displayed.',
+                                                style={'textAlign': 'center'}),
+                                            dcc.Dropdown(id="biasDropdown",
+                                                         options=[{'label': x, 'value': x} for x in df.columns],
+                                                         multi=True,
+                                                         placeholder="Select sensitive feature(s)"),
+                                            dcc.Loading(
+                                                id="loading-3",
+                                                children=html.Div(id="biasGraph")),
+                                        ]),
+                                    ],
+                                    value="biasDistributionFeatureimportance",
+                                ),])
+
+
+
+@app.callback(
+    Output('feature_importance_plot_div', 'children'),
+    [Input('run-checks-button', 'n_clicks'),
+     State('stored-filepath', 'data'),
+     State('dtypes_dropdown', 'data'),
+     State('targetColumn', 'value')]
+)
+def feature_importance_plot(n_clicks, filepath, dtypes, target):#, n, target):
     if n_clicks >= 1: #run checks button clicked
 
         if target != 'None':
-            df = pd.DataFrame(df_json)
+            df = fetch_data(filepath)
             df = plot_and_transform_functions.clean_dataset(df)
             dtypes_dict = dtypes[0]
             feature_importance_plot = plot_and_transform_functions.plot_feature_importance(df, target, dtypes_dict)
@@ -463,17 +507,17 @@ def feature_importance_plot(n_clicks, df_json, dtypes, target):#, n, target):
 @app.callback(
     Output(component_id='biasGraph', component_property='children'),
     [Input(component_id='biasDropdown', component_property='value'),
-     State('stored-data', 'data'),
+     State('stored-filepath', 'data'),
      State('targetColumn', 'value')])
 
-def bias_graph(bias_dropdown, df_json, target):
+def bias_graph(bias_dropdown, filepath, target):
     if bias_dropdown:
         if target in bias_dropdown:
             bias_dropdown = bias_dropdown.remove(target) # as this just gives the class distribution, which is already presented before, and hinders logical results when
         # combined with other features
         if bias_dropdown:
             # then atleast one sensitive feature that is not the target is selected, plot the analysis
-            df = pd.DataFrame(df_json)
+            df = fetch_data(filepath)
             df = plot_and_transform_functions.clean_dataset(df)
             if target != 'None':
                 sensitive_feature_combinations_table = fairness_checks.sensitive_feature_combinations(df,bias_dropdown, target, bins=5)
@@ -488,11 +532,11 @@ def bias_graph(bias_dropdown, df_json, target):
 @app.callback(
     Output('long_running_time_accordion', 'children'),
     [Input('run-checks-button', 'n_clicks'),
-     State('stored-data', 'data'),
+     State('stored-filepath', 'data'),
      State('dtypes_dropdown', 'data'),
      State('targetColumn', 'value')]
 )
-def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
+def cleanlab_label_error_check(n_clicks, filepath, dtypes, target):#, n, target):
     if n_clicks >= 1: #run checks button clicked
         if target != 'None':
             dtypes_dict = dtypes[0]
@@ -505,7 +549,7 @@ def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
 
             #label erros can only be detected when the task at hand is a classification task
             if task_type == 'classification':
-                df = pd.DataFrame(df_json)
+                df = fetch_data(filepath)
 
                 df = plot_and_transform_functions.clean_dataset(df)
                 encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
@@ -521,7 +565,7 @@ def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
                                 children=[
                                     dmc.AccordionItem(
                                         [
-                                            dmc.AccordionControl("Extra accordion ({})".format(36)),
+                                            dmc.AccordionControl("Model performance & label errors ({})".format(36)),
                                             dmc.AccordionPanel([#Cleanlab label issues
                                                                 html.H6('Cleanlab.ai label issues check', style={'textAlign': 'center'}),
                                                                 html.P([
@@ -561,15 +605,15 @@ def cleanlab_label_error_check(n_clicks, df_json, dtypes, target):#, n, target):
 @app.callback(
     Output('baseline_performance_plot', 'children'),
     [Input('run-checks-button', 'n_clicks'),
-     State('stored-data', 'data'),
+     State('stored-filepath', 'data'),
      State('dtypes_dropdown', 'data'),
      State('targetColumn', 'value')]
 )
-def baseline_performance_assessment(n_clicks, df_json, dtypes, target):
+def baseline_performance_assessment(n_clicks, filepath, dtypes, target):
     if n_clicks >= 1: #run checks button clicked
 
         if target != 'None':
-            df = pd.DataFrame(df_json)
+            df = fetch_data(filepath)
             df = plot_and_transform_functions.clean_dataset(df)
             dtypes_dict = dtypes[0]
             encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
@@ -577,6 +621,19 @@ def baseline_performance_assessment(n_clicks, df_json, dtypes, target):
             baseline_performance_plot = plot_and_transform_functions.baseline_model_performance(encoded_dataframe, target, dtypes_dict)
             return dcc.Graph(figure = baseline_performance_plot)
 
+
+def generate_filepath(uploaded_filename):
+    session_id = str(uuid.uuid4())
+    uploaded_filename = os.path.splitext(uploaded_filename)[0] #remove the file extension
+    filename = f"{session_id}_{uploaded_filename}.pkl"
+    filepath = os.path.join(cache_dir, filename)
+    return filepath
+
+def fetch_data(filepath):
+    if os.path.exists(filepath):
+        # If the file already exists, load the DataFrame from the cache
+        df = pd.read_pickle(filepath)
+        return df
 
 if __name__ == '__main__':
     app.run_server(debug=True)

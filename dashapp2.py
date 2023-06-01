@@ -70,7 +70,6 @@ app.layout = html.Div([
         # Allow multiple files to be uploaded
         multiple=True
     ),
-    html.Div(id='output-div'),
     html.Div(id='output-data-upload'),
     #dcc.Graph(figure=fig)
 
@@ -113,7 +112,7 @@ def parse_contents(contents, filename, date):
         html.P('Choose your target column'),
         dcc.Dropdown(id="targetColumn", options=[{'label':'None', 'value':'None'}] + [{'label':x, 'value':x} for x in df.columns], value = 'None'),
         #html.Button(id='submit-button', children='Run checks'),
-        html.Div(id='dd-output-container'),
+        html.Div(id='target-selected-container'),
         dcc.Store(id='stored-filepath', data=filepath, storage_type='memory'),
 
         #Feature type table
@@ -156,11 +155,11 @@ def parse_contents(contents, filename, date):
         html.Hr(),  # horizontal line
     ])
 @app.callback(
-    [Output('dd-output-container', 'children'), Output('output-div', 'children')],
-    [Input('targetColumn', 'value')]#, Input('submit-button','n_clicks'), State('targetColumn','targetvalue')]
+    Output('target-selected-container', 'children'),
+    Input('targetColumn', 'value')#, Input('submit-button','n_clicks'), State('targetColumn','targetvalue')]
 )
 def display_selected_target_column(value):#, n, target):
-    return f'You have selected {value}, as your target column', dash.no_update
+    return f'You have selected {value}, as your target column'
 
 
 @app.callback(Output('output-data-upload', 'children'),

@@ -81,7 +81,6 @@ def special_characters(dataset):
 
     df.reset_index(drop=True, inplace=True)
     df = dash_datatable_format_fix(df)
-    print(df)
 
     return df
 

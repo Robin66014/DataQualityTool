@@ -46,7 +46,7 @@ import plotly.graph_objects as go
 #             anderson_result = anderson(data)
 #             ks_result = kstest(data, 'norm')
 #             d_ap_result = normaltest(data)
-#             #put in df
+#
 #             test_results = test_results.append({'column': col,
 #                                                 'shapiro_wilk_stat': shapiro_result.statistic,
 #                                                 'shapiro_wilk_pvalue': shapiro_result.pvalue,
@@ -311,12 +311,20 @@ def baseline_model_performance(dataset, target, dtypes):
     fig.update_traces(textposition='outside')
     return fig
 
+# def box_plot(df, dtypes):
+#     numerical_columns = []
+#     for col in df.columns:
+#         if dtypes[col] == 'floating' or dtypes[col] == 'integer' or dtypes[col] == 'numeric':
+#             numerical_columns.append(col)
+#     print(numerical_columns)
+#
+#     return px.box(df, y=numerical_columns, title="Numerical Column Visualization for identifying column outliers")
 def box_plot(df, dtypes):
 
     numerical_columns = []
     for col in df.columns:
         # histogram for numerical values
-        if dtypes[col] == 'floating' or dtypes[col] == 'integer':
+        if dtypes[col] == 'floating' or dtypes[col] == 'integer' or dtypes[col] == 'numeric':
             numerical_columns.append(col)
             # Add traces for each numerical column
     data = []
