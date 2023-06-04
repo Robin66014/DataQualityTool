@@ -13,8 +13,8 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
 from plot_and_transform_functions import dash_datatable_format_fix
 
-amount_of_columns = 100000
-amount_of_samples = 100000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
+amount_of_columns = 10000000
+amount_of_samples = 10000000
 
 
 def class_imbalance(dataset):
@@ -44,7 +44,7 @@ def conflicting_labels(dataset):
     result = resultConflictingLabels.value
     percentage = round(result.get('percent'), 6)
     if len(result['samples_indices']) == 0:
-        resultDF = pd.DataFrame({"Message": ["No conflicting labels encountered"]})
+        resultDF = pd.DataFrame({"Message": ["Check passed: No conflicting labels encountered"]})
     else:
         resultDF = resultConflictingLabels.display[1]
         resultDF.reset_index(inplace=True)

@@ -2,13 +2,15 @@ import pandas
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
+import missingno as msno
+import os
 from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
 from plot_and_transform_functions import dash_datatable_format_fix
 
-amount_of_columns = 100000
-amount_of_samples = 100000
+amount_of_columns = 10000000
+amount_of_samples = 10000000
 
 def missing_values(dataset):
     """"Checks the amount of missing values, and the types of missing values: numpy.NaN, None, '', ..."""
@@ -70,8 +72,11 @@ def missing_values(dataset):
     # append the zeros list to the original dataframe
     missing_values_df.insert(len(missing_values_df.columns) - 1, 'Zeros', zeros)
     missing_values_df['Potential total missingness percentage in column'] = [x + zeros_percentage_list[i] for i, x in enumerate(missing_values_df['Potential total missingness percentage in column'])]
-
+    total_potential_missingness_sum = missing_values_df['Potential total missingness percentage in column'].sum()
     missing_values_df = dash_datatable_format_fix(missing_values_df)
+    if total_potential_missingness_sum == 0:
+        missing_values_df = pd.DataFrame({"Message": ["Check passed: No missing values encountered"]})
+    print('@@@@missing_values_df', missing_values_df)
     return missing_values_df #returns dataframe with missing values
 
 def duplicates(df):
@@ -86,15 +91,16 @@ def duplicates(df):
 
         #merge & add original row number
         merged = pd.merge(df.reset_index(), grouped, on=list(df.columns), how='left')
-        merged['Duplicates'] = merged.apply(lambda x: sorted(list(set(x['Duplicates'] + [x['index']]))), axis=1)
+        merged['Duplicates'] = merged.apply(lambda x: sorted(list(set(x['Duplicates'] + [x['index']])) if isinstance(x['Duplicates'], list) else [x['index']]), axis=1)
         merged = merged.rename(columns={'index':'Index first encountered'})
         #Drop duplicates from the df
         final_df = merged.drop_duplicates(subset=list(df.columns))
         final_df = dash_datatable_format_fix(final_df)
+        print('@@final_DF duplicates',final_df)
         return final_df
 
     except Exception as e:
-        return pd.DataFrame({"Message": ["No duplicates encountered"]})
+        return pd.DataFrame({"Message": ["Check passed: No duplicate instances encountered"]})
 
 
 
@@ -113,30 +119,18 @@ def duplicate_column(df):
     if duplicate_cols:
         df_duplicate_columns = pd.DataFrame(result, columns=['Column', 'Duplicate Column'])
         df_duplicate_columns = dash_datatable_format_fix(df_duplicate_columns)
+        print('@@duplicate column df', df_duplicate_columns)
         return df_duplicate_columns
     else:
-        return pd.DataFrame({"Message": ["No duplicate columns encountered"]})
+        return pd.DataFrame({"Message": ["Check passed: No duplicate columns encountered"]})
 
+# def missingno_plot(df):
+#     fig = msno.matrix(df)
+#     fig_copy = fig.get_figure()
+#     fig_copy.savefig('assets/missingno_plot.png', bbox_inches='tight')
+#     # img_source = os.path.join(current_path, 'cached_files/missingno_plot.png')
+#     img_source = 'assets/missingno_plot.png'
+#     print(img_source)
+#
+#     return img_source
 
-# data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}
-# dataframe = pd.DataFrame(data=data)
-# res = missing_values(dataframe)
-# # print(res.to_string())
-# # res = pandas.NA == 'na'
-# print(type(res))
-
-# df = pd.DataFrame({
-#     'A': ['foo', 'bar', 'baz', 'foo', 'bar', 'foo', 'bar', 'baz', 'foo', 'bar', 'test', 'test'],
-#     'B': [1, 2, 3, 1, 2, 1, 2, 3, 1, 2, 99, 99],
-#     'C': ['A', 'B', 'C', 'A', 'B', 'A', 'B', 'C', 'A', 'B', 'test', 'test']
-# })
-
-# data = {'Name': ['John', 'Jane', 'Bob', 'Mary', 'Kate'],
-#         'Age': [25, 31, 19, 27, 22],
-#         'City': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Boston']}
-
-# df = pd.read_csv('datasets\iris_with_missing.csv')
-# # df = pd.DataFrame(data)
-# #
-# res = missing_values(df)
-# print(res)

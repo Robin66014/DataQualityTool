@@ -10,7 +10,7 @@ from dash.dependencies import Input, Output, State
 # from flask_caching import Cache
 import uuid
 import time
-import arff
+import scipy.io.arff as arff
 from sklearn.preprocessing import LabelEncoder
 import dash_mantine_components as dmc
 import os
@@ -24,6 +24,7 @@ import dash_bootstrap_components as dbc
 import label_purity
 import plot_and_transform_functions
 import testingFile
+
 #df = pd.read_csv('datasets\Iris.csv')
 #sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
 sortingHatInf_datatypes = ['not-generalizable', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
@@ -70,7 +71,7 @@ app.layout = html.Div([
         # Allow multiple files to be uploaded
         multiple=True
     ),
-    dcc.Loading(children=html.Div(id='output-data-upload'), type = 'circle'),
+    dcc.Loading(children=html.Div(id='output-data-upload'), type = 'circle', style={'content': "Loadin@@@g..."}),
 
 
     #dcc.Graph(figure=fig)
@@ -97,19 +98,32 @@ def parse_contents(contents, filename, date):
     decoded = base64.b64decode(content_string)
     filepath = generate_filepath(filename)
 
-
     try:
-        if '.csv' in filename:
+        if 'csv' in filename:
             # Assume that the user uploaded a CSV file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
-        elif '.xls' in filename:
+        elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
         elif '.arff' in filename:
-            data = arff.load(io.StringIO(decoded.decode('utf-8')))
-            columns = [attr[0] for attr in data['attributes']]
-            df = pd.DataFrame(data['data'], columns=columns)
+            # Assume that the user uploaded an ARFF file
+            data = io.StringIO(decoded.decode('utf-8'))
+            arff_data = arff.loadarff(data)
+            df = pd.DataFrame(arff_data[0])
+            for column in df.columns:
+                if df[column].dtype == object:  # Check if the column contains object data type (usually used for strings)
+                    df[column] = df[column].str.decode('utf-8', errors='ignore')
+        elif '.parquet' in filename:
+            # Assume that the user uploaded a Parquet file
+            df = pd.read_parquet(io.BytesIO(decoded))
+        # elif '.json' in filename:
+        #     # Assume that the user uploaded a JSON file
+        #     df = pd.read_json(io.StringIO(decoded.decode('utf-8')))
+        # elif '.feather' in filename:
+        #     # Assume that the user uploaded a Feather file
+        #     df = pd.read_feather(io.BytesIO(decoded))
+
         df.to_pickle(filepath)
         featureTypeTable = obtain_feature_type_table(df)
         #settings.first_time = True
@@ -201,6 +215,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #Running of the checks
         #duplicates & missing
         df_missing_values = duplicates_and_missing.missing_values(df)
+        #missingno_plot_src = duplicates_and_missing.missingno_plot(df)
         df_duplicates = duplicates_and_missing.duplicates(df)     #TODO: duplicates check testen
         df_duplicate_columns = duplicates_and_missing.duplicate_column(df)
 
@@ -226,8 +241,8 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #missingno_plot = plot_and_transform_functions.missingno_plot(df)
         label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
         pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target)
-        print(df)
-        print(dtypes_dict)
+        # print(df)
+        # print(dtypes_dict)
         box_plot = plot_and_transform_functions.box_plot(df, dtypes_dict) #TODO checken
 
         if task_type == 'classification': #target column supplied
@@ -272,6 +287,9 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
                                                 dash_table.DataTable(df_missing_values.to_dict('records'), style_table={
                                                                             'overflowX': 'scroll'
                                                                         }),
+                                                html.P('The following images visualizes your missing values in msno matrix',
+                                                    style={'textAlign': 'center'}),
+                                                #html.img(src=missingno_plot_src, alt="MSNO plot", width="750", height="500"),
                                                 html.Hr(),
                                                 html.H6('Duplicates check', style={'textAlign': 'center'}),
                                                 html.P('Checks whether there are any duplicates and displays the row numbers of the  duplicate instances.',

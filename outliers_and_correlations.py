@@ -10,8 +10,8 @@ from deepchecks.tabular.datasets.classification import adult
 import plotly.express as px
 import plotly.figure_factory as ff
 #dataset = Dataset(data, label = 'Species')
-amount_of_columns = 100000
-amount_of_samples = 100000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
+amount_of_columns = 10000000
+amount_of_samples = 10000000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
 
 
 def feature_feature_correlation(dataset):
@@ -61,7 +61,7 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
     #TODO: outliers ook zichtbaar maken in overeenstemming met dq_report / op basis van minimum value
     try:
         checkOutlier = deepchecks.tabular.checks.OutlierSampleDetection(nearest_neighbors_percent=nearest_neighors_percent,
-                                                                         n_samples=10000, timeout = 1000, n_to_show = amount_of_samples) #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
+                                                                         n_samples=10000, timeout = 1200, n_to_show = amount_of_samples) #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
         #TODO: timeout warning toevoegen, nu geeft ie gewoon een error
         resultOutlier = checkOutlier.run(dataset)
         result = resultOutlier.display[1] #obtain dataframe with probability scores
@@ -74,7 +74,7 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
 
         amount_of_outliers = 0
         if result_filtered.empty:
-            result_filtered = pd.DataFrame({"Message": ["No outliers with a probability score higher than {}, The highest probability found is: {}".format(threshold, max_prob_score)]})
+            result_filtered = pd.DataFrame({"Message": ["Check passed: No outliers with a probability score higher than {}, The highest probability found is: {}".format(threshold, max_prob_score)]})
         else:
             amount_of_outliers = result_filtered.shape[0]
         result_filtered = dash_datatable_format_fix(result_filtered)
@@ -82,7 +82,7 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
         return result_filtered, amount_of_outliers, threshold
 
     except Exception as e:
-        return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME EXCEEDED"}), 0, 0
+        return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME OF 20 MINUTES EXCEEDED"}), 0, 0
 
 
 

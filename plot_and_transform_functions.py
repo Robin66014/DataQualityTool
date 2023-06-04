@@ -158,7 +158,7 @@ def encode_categorical_columns(dataset, target, dtypes):
 
 def label_encode_dataframe(df, dtypes):
     label_encoded_dict = {}
-
+    mapping_df = pd.DataFrame({"Message": ["No label encoding took place"]}) #as a dataframe to prevent future erros with label_mapping/mapping_df.to_dict()
     for column in df.columns:
         if dtypes[column] == 'categorical' or dtypes[column] == 'boolean' and not is_numeric_dtype(df[column]):
             unique_values = df[column].unique()
@@ -170,7 +170,6 @@ def label_encode_dataframe(df, dtypes):
             mapping_df = pd.DataFrame.from_dict([(key, tuple(val.items())) for key, val in label_encoded_dict.items()])
             mapping_df.columns = ['Column name', 'Encoding mapping']
             #modifications to the dataframe to makeit Dash.datatable-proof as it doesnt accept lists
-            #mapping_df['Encoding mapping'] = mapping_df['Encoding mapping'].apply(lambda x: [list(t) for t in x])
             mapping_df['Encoding mapping'] = mapping_df['Encoding mapping'].apply(lambda x: str(x)[1:-1])
 
     return df, mapping_df

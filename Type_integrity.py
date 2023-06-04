@@ -9,12 +9,13 @@ import numpy as np
 from plot_and_transform_functions import dash_datatable_format_fix
 data = pd.read_csv('datasets\Iris.csv')
 #dataset = Dataset(data, label = 'Species')
-amount_of_columns = 100000
-amount_of_samples = 100000
+amount_of_columns = 10000000
+amount_of_samples = 10000000
 
 
 
 def amount_of_diff_values(dataset):
+    #TODO: enigszins slecht, dus lage weging categorie 1/3
     """"displays the amount of different values per column"""
     #TODO: currently only displays the amount of distinct values in a column, do something with the case that it is literally unique
     checkSingleValue = deepchecks.tabular.checks.IsSingleValue(n_to_show=amount_of_columns, n_samples=amount_of_samples)
@@ -70,15 +71,18 @@ def special_characters(dataset):
     checkSpecialCharacters = deepchecks.tabular.checks.SpecialCharacters(n_top_columns=amount_of_columns,
                                                                    n_samples=amount_of_samples, n_most_common = 5)
     resultSpecialCharacters = checkSpecialCharacters.run(dataset)
-
+    print('resultspecialcharacters', resultSpecialCharacters)
     result = resultSpecialCharacters.display
+    print('@@@@@@@@@@@@@@@@result', result)
     if result:
-        df = pd.DataFrame(result[1])
-        column_names = df.index
-        df.insert(0, 'Column', column_names)
+        a = 1
+        #print('@@@@@result[1]', result[1])
+        # df = pd.DataFrame(result[1])
+        # column_names = df.index
+        # df.insert(0, 'Column', column_names)
     else:
-        df = pd.DataFrame({"Message": ["No special characters encountered"]})
-
+        df = pd.DataFrame({"Message": ["Check passed: No special characters encountered"]})
+    df = pd.DataFrame({"Message": ["No special characters encountered"]}) #TODO FOR DEBUGGING
     df.reset_index(drop=True, inplace=True)
     df = dash_datatable_format_fix(df)
 
@@ -97,7 +101,7 @@ def string_mismatch(dataset):
         df = pd.DataFrame(result[1])
         df = pd.DataFrame(df.to_records()) #flatten hierarchical index in columns
     else:
-        df = pd.DataFrame({"Message": ["No string mismatch or variants of the same string encountered"]})
+        df = pd.DataFrame({"Message": ["Check passed: No string mismatch/variants of the same string encountered"]})
 
     df = dash_datatable_format_fix(df)
 
