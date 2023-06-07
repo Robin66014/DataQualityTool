@@ -9,6 +9,7 @@ import numpy as np
 from deepchecks.tabular.datasets.classification import adult
 import plotly.express as px
 import plotly.figure_factory as ff
+import plotly.graph_objects as go
 #dataset = Dataset(data, label = 'Species')
 amount_of_columns = 10000000
 amount_of_samples = 10000000 #TODO: compute snelheid bekijken, anders samplen zoals op deepchecks
@@ -30,6 +31,7 @@ def feature_feature_correlation(dataset):
     correlationDF = resultFeatureFeatureCorrelation.value #pandas dataframe with correlation values
     fig = px.imshow(correlationDF, text_auto=True, aspect="auto", color_continuous_scale='thermal') #plotly image for in Dash application
     #fig = ff.create_annotated_heatmap(correlationDF)
+    correlationDF.rename_axis('Column', inplace=True)
     correlationDF = dash_datatable_format_fix(correlationDF)
     return correlationDF, fig
 
@@ -74,7 +76,7 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
 
         amount_of_outliers = 0
         if result_filtered.empty:
-            result_filtered = pd.DataFrame({"Message": ["Check passed: No outliers with a probability score higher than {}, The highest probability found is: {}".format(threshold, max_prob_score)]})
+            result_filtered = pd.DataFrame({"Check notification": ["Check passed: No outliers with a probability score higher than {}, The highest probability found is: {}".format(threshold, max_prob_score)]})
         else:
             amount_of_outliers = result_filtered.shape[0]
         result_filtered = dash_datatable_format_fix(result_filtered)
@@ -82,37 +84,27 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
         return result_filtered, amount_of_outliers, threshold
 
     except Exception as e:
-        return pd.DataFrame({"COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME OF 20 MINUTES EXCEEDED"}), 0, 0
+        return pd.DataFrame({"Check notification": ["COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME OF 20 MINUTES EXCEEDED. Note: if your dataset is very small, this could also be the cause of the check not running."]}), 0, threshold
+
+def box_plot(df, dtypes):
+
+    numerical_columns = []
+    for col in df.columns:
+        # histogram for numerical values
+        if dtypes[col] == 'floating' or dtypes[col] == 'integer' or dtypes[col] == 'numeric':
+            numerical_columns.append(col)
+            # Add traces for each numerical column
+    data = []
+    for column in numerical_columns:
+        data.append(go.Box(y=df[column], name=column))
+
+    layout = go.Layout(
+    title="Numerical column outlier Visualization",
+    yaxis_title="Value"
+                        )
+    fig = go.Figure(data=data, layout=layout)
 
 
+    return fig
 
 
-
-## for testing purposes
-#data = {'col1': [pd.NA, pd.NaT], 'col2': ['test', pd.NaT], 'col3': ['1', 'cat']}
-# dataframe = pd.DataFrame({
-#     'a': ['Deep', np.nan, 'deep', 'deep!'],
-#     'b': [2, 3, 4, 8],
-#     'c': [None, 'weeehooo', 'weeehoo', 'Weeehooo'],
-#     'd': ['a', 4, 'ploep', 'hoi'],
-# })
-# zero_data = np.zeros(shape=(100,100))
-# ds = pd.DataFrame(zero_data)
-
-# ds = adult.load_data(as_train_test=False)
-# checkClassImbalance = deepchecks.tabular.checks.ClassImbalance(n_top_labels=amount_of_columns)
-# resultClassImbalance = checkClassImbalance.run(ds)
-#
-# result = resultClassImbalance.value #pandas dataframe with correlation values
-# resultDF = pd.DataFrame(result, index=[0])
-# print('@@ds.label_co: ', ds.label_col)
-# print('@@ds.data: ', ds.data)
-# print('@@ds.classes_in_label_col: ', ds.classes_in_label_col)
-# print('@@ds.columns_info: ', ds.columns_info)
-# print('@@ds.cat_features: ', ds.cat_features)
-#
-
-# res, amount = outlier_detection(ds)
-# print(res)
-# print(res.iloc[0,:])
-# print(amount)

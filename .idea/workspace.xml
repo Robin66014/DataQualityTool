@@ -7,14 +7,14 @@
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Calculate_data_quality_label.py" beforeDir="false" afterPath="$PROJECT_DIR$/Calculate_data_quality_label.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Type_integrity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Type_integrity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/missingno_plot.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/cached_files/2029240f6d1128be89ddc32729463129" beforeDir="false" afterPath="$PROJECT_DIR$/cached_files/2029240f6d1128be89ddc32729463129" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dashapp2.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dashapp3.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp3.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dashapp5.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp5.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/label_purity.py" beforeDir="false" afterPath="$PROJECT_DIR$/label_purity.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/outliers_and_correlations.py" beforeDir="false" afterPath="$PROJECT_DIR$/outliers_and_correlations.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/plot_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_and_transform_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testingFile.py" beforeDir="false" afterPath="$PROJECT_DIR$/testingFile.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testingfile.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/testingfile.ipynb" afterDir="false" />
     </list>
@@ -73,7 +73,7 @@
       <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents Robinkaelen Onedrive\Documenten\GitHub\DataQualityTool" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.dashapp">
     <configuration name="Type_integrity" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="DataQualityTool" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -206,6 +206,7 @@
       <workItem from="1683273137571" duration="43049000" />
       <workItem from="1685518684834" duration="38096000" />
       <workItem from="1685632657464" duration="28346000" />
+      <workItem from="1685892311585" duration="68040000" />
     </task>
     <servers />
   </component>

@@ -46,11 +46,12 @@ def mixed_data_types(dataset):
         if not bool(result_dict[key]): #then the value is {} (empty)
             random_samples = list(dataset[key].sample(n=3)) #obtain 3 random samples
             if pd.api.types.is_string_dtype(dataset[key]): #check whether the values in the column are strings
-                result_dict[key] = {'strings': 1.0, 'numbers': 0.0, 'strings_examples': str(random_samples), 'numbers_examples': str([])}
+                result_dict[key] = {'strings': 1.0, 'numbers': 0.0, 'strings_examples': random_samples, 'numbers_examples': str([])}
             else:
-                result_dict[key] = {'strings': 0.0, 'numbers': 1.0, 'strings_examples': str([]), 'numbers_examples': str(random_samples)}
+                result_dict[key] = {'strings': 0.0, 'numbers': 1.0, 'strings_examples': str([]), 'numbers_examples': random_samples}
 
     df = pd.DataFrame.from_dict(result_dict, orient='columns')
+
     index_names = df.index
     if 'Data type' not in df.columns:
         df.insert(0, 'Data type', index_names)
@@ -71,18 +72,14 @@ def special_characters(dataset):
     checkSpecialCharacters = deepchecks.tabular.checks.SpecialCharacters(n_top_columns=amount_of_columns,
                                                                    n_samples=amount_of_samples, n_most_common = 5)
     resultSpecialCharacters = checkSpecialCharacters.run(dataset)
-    print('resultspecialcharacters', resultSpecialCharacters)
     result = resultSpecialCharacters.display
-    print('@@@@@@@@@@@@@@@@result', result)
     if result:
-        a = 1
-        #print('@@@@@result[1]', result[1])
-        # df = pd.DataFrame(result[1])
-        # column_names = df.index
-        # df.insert(0, 'Column', column_names)
+        df = pd.DataFrame(result[1])
+        column_names = df.index
+        df.insert(0, 'Column', column_names)
     else:
-        df = pd.DataFrame({"Message": ["Check passed: No special characters encountered"]})
-    df = pd.DataFrame({"Message": ["No special characters encountered"]}) #TODO FOR DEBUGGING
+        df = pd.DataFrame({"Check notification": ["Check passed: No special characters encountered"]})
+    #df = pd.DataFrame({"Message": ["No special characters encountered"]}) #TODO: FOR DEBUGGING
     df.reset_index(drop=True, inplace=True)
     df = dash_datatable_format_fix(df)
 
@@ -101,7 +98,7 @@ def string_mismatch(dataset):
         df = pd.DataFrame(result[1])
         df = pd.DataFrame(df.to_records()) #flatten hierarchical index in columns
     else:
-        df = pd.DataFrame({"Message": ["Check passed: No string mismatch/variants of the same string encountered"]})
+        df = pd.DataFrame({"Check notification": ["Check passed: No string mismatch/variants of the same string encountered"]})
 
     df = dash_datatable_format_fix(df)
 

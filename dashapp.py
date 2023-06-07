@@ -29,7 +29,8 @@ import testingFile
 #sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
 sortingHatInf_datatypes = ['not-generalizable', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']#[dbc.themes.SUPERHERO]#
+dbc_css = "https://cdn.jsdelivr.net/gh/AnnMarieW/dash-bootstrap-templates/dbc.min.css"
+external_stylesheets = [dbc.themes.SUPERHERO, dbc_css]#[dbc.themes.SUPERHERO]#['https://codepen.io/chriddyp/pen/bWLwgP.css']#[dbc.themes.SUPERHERO]#
 
 button_style = {'background-color': 'blue',
                     'color': 'white',
@@ -48,7 +49,7 @@ cache_dir = os.path.join(current_directory, 'cached_files')
 
 app.title = "Data quality toolkit"
 
-app.layout = html.Div([
+app.layout = dbc.Container(html.Div([
     html.Div("Data quality toolkit", style={'fontSize':50, 'textAlign':'center'}),
     html.Hr(),
     dcc.Upload(
@@ -80,7 +81,7 @@ app.layout = html.Div([
 
 
 
-])
+]), fluid=True, className="dbc")
 
 @app.callback(Output('output-data-upload', 'children'),
               Input('upload-data', 'contents'),
@@ -216,21 +217,32 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         check_results = {}
         #duplicates & missing
         df_missing_values = duplicates_and_missing.missing_values(df)
+        df_missing_values.to_csv('datasets/dataframes_label/df_missing_values.csv')
         #missingno_plot_src = duplicates_and_missing.missingno_plot(df)
-        df_duplicates = duplicates_and_missing.duplicates(df)     #TODO: duplicates check testen
+        df_duplicates = duplicates_and_missing.duplicates(df, dtypes_dict)     #TODO: duplicates check testen
+        df_duplicates.to_csv('datasets/dataframes_label/df_duplicates.csv')
         df_duplicate_columns = duplicates_and_missing.duplicate_column(df)
+        print(df_duplicate_columns)
+        df_duplicate_columns.to_csv('datasets/dataframes_label/df_duplicate_columns.csv')
         check_results.update({'missing_values_check' : df_missing_values, 'duplicate_instances_check' : df_duplicates, 'duplicate_columns_check' : df_duplicate_columns})
 
         #type integrity checks
         df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
+        df_amount_of_diff_values.to_csv('datasets/dataframes_label/df_amount_of_diff_values.csv')
         df_mixed_data_types = type_integrity.mixed_data_types(df)
-        df_special_characters = type_integrity.special_characters(df)
+        df_mixed_data_types.to_csv('datasets/dataframes_label/df_mixed_data_types.csv')
+        df_special_characters = type_integrity.special_characters(df) #TODO: fixen
+        #df_special_characters.to_csv('datasets/dataframes_label/df_special_characters')
         df_string_mismatch = type_integrity.string_mismatch(df)
+        df_string_mismatch.to_csv('datasets/dataframes_label/df_string_mismatch.csv')
+        print(df_string_mismatch)
 
         #outliers & correlations
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
+        df_feature_feature_correlation.to_csv('datasets/dataframes_label/df_feature_feature_correlation.csv')
         df_outliers, amount_of_outliers, threshold = outliers_and_correlations.outlier_detection(ds)
-        #df_outlier_per_column = pd.DataFrame({"Message": ["No outliers per column detected"]})
+        df_outliers.to_csv('datasets/dataframes_label/df_outliers.csv')
+        #df_outlier_per_column = pd.DataFrame({"Check notification": ["No outliers per column detected"]})
         pandas_dq_report = plot_and_transform_functions.pandas_dq_report(df, target)
 
         #the encoded dataframe
@@ -243,30 +255,32 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #missingno_plot = plot_and_transform_functions.missingno_plot(df)
         label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
         pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target)
-        # print(df)
-        # print(dtypes_dict)
-        box_plot = plot_and_transform_functions.box_plot(df, dtypes_dict) #TODO checken
+        box_plot = outliers_and_correlations.box_plot(df, dtypes_dict) #TODO checken
 
         if task_type == 'classification': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
+            df_feature_label_correlation.to_csv('datasets/dataframes_label/df_feature_label_correlation.csv')
 
             #label purity checks
             df_class_imbalance, fig_class_imbalance = label_purity.class_imbalance(ds)
+            df_class_imbalance.to_csv('datasets/dataframes_label/df_class_imbalance.csv')
             df_conflicting_labels, percent_conflicting = label_purity.conflicting_labels(ds)
+            df_conflicting_labels.to_csv('datasets/dataframes_label/df_conflicting_labels.csv')
         else: #no target column selected or not a classification problem, thus not applicable
             df_feature_label_correlation = pd.DataFrame({
-                "Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+                "Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
                             " is not a classification problem"]})
             df_conflicting_labels = pd.DataFrame(
-                {"Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+                {"Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
                              " is not a classification problem"]})
             percent_conflicting = 0
             df_class_imbalance = pd.DataFrame(
-                {"Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+                {"Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
                              " is not a classification problem"]})
             #fig_class_imbalance = html.Div()
         #dataset_nutrition_label = calculate_dataset_nutrition_label(check_results)
         return html.Div([#Data issue / check results section
+                dbc.Progress(value=25, color="success"),
                 html.H6('Profiling report and issue overview', style={'textAlign':'center'}),
                 html.P('This section contains a profling report showing important information'
                        ' regarding ML issues found in the dataset', style={'textAlign':'center'}),
@@ -283,8 +297,8 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
                         [
                             dmc.AccordionControl("Duplicates & missing values ({})".format(36)),
                             dmc.AccordionPanel([html.H6('Missing values check', style={'textAlign':'center'}),
-                                                html.P('Checks the type and amount of missing values. The potential total missingness is the'
-                                                       ' percent missing plus the percentage of zeros.',
+                                                html.P('Checks the type and amount of missing values. The potential total missingness column is the'
+                                                       ' percent missing plus some missingness types (like zeros) that are often used to indicate missing values',
                                                     style={'textAlign': 'center'}),
                                                 dash_table.DataTable(df_missing_values.to_dict('records'), style_table={
                                                                             'overflowX': 'scroll'
@@ -334,7 +348,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
                                             html.Hr(),
 
                                             html.H6("Special characters check", style={'textAlign': 'center'}),
-                                            html.P("checks for characters like '?!$^&#'.", style={'textAlign': 'center'}),
+                                            html.P("Checks for data points that contain only special characters like '?!$^&#'.", style={'textAlign': 'center'}),
                                             dash_table.DataTable(df_special_characters.to_dict('records'), style_table={
                                                                             'overflowX': 'scroll'
                                                                         }),
@@ -544,7 +558,7 @@ def bias_graph(bias_dropdown, filepath, target):
                 stacked_bar_chart_fig = fairness_checks.plot_stacked_barchart(sensitive_feature_combinations_table)
                 return dcc.Graph(figure=stacked_bar_chart_fig)
             else:
-                return html.P('NOT APPLICABLE: The feature importance plot is not applicable when no target column is selected')
+                return html.P('NOT APPLICABLE: Bias analysis is not applicable when no target column is selected')
 
 
 
@@ -577,7 +591,7 @@ def bias_graph(bias_dropdown, filepath, target):
 #                 _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
 #             else:
 #                 issues_dataframe_only_errors = pd.DataFrame(
-#                 {"Message": ["This check is not applicable as there is no target column selected or the problem at hand"
+#                 {"Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
 #                              " is not a classification problem"]})
 #                 wrong_label_count = 0
 #

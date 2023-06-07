@@ -42,9 +42,9 @@ def conflicting_labels(dataset):
 
     #percentage = round(resultConflictingLabels.value[0], 3) #pandas dataframe with correlation values
     result = resultConflictingLabels.value
-    percentage = round(result.get('percent'), 6)
+    percentage = round(result.get('percent'), 6)*100
     if len(result['samples_indices']) == 0:
-        resultDF = pd.DataFrame({"Message": ["Check passed: No conflicting labels encountered"]})
+        resultDF = pd.DataFrame({"Check notification": ["Check passed: No conflicting labels encountered"]})
     else:
         resultDF = resultConflictingLabels.display[1]
         resultDF.reset_index(inplace=True)

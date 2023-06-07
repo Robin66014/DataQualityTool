@@ -18,7 +18,7 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from category_encoders.target_encoder import TargetEncoder
 from sklearn.model_selection import train_test_split
-import plotly.graph_objects as go
+
 # def test_normality(dataset, column_types):
 #     """
 #     Performs normality tests on all numeric columns of a dataset and returns the test results.
@@ -234,7 +234,7 @@ def plot_dataset_distributions(data, dtypes):
     # each datatypre requires different plotting
     for col in data.columns:
         # histogram for numerical values
-        if dtypes[col] == 'floating' or dtypes[col] == 'integer':
+        if dtypes[col] == 'floating' or dtypes[col] == 'integer' or dtypes[col] == 'numeric':
             fig = px.histogram(data, x=col, title=f'{col} distribution')
             figs.append(fig)
 
@@ -318,26 +318,7 @@ def baseline_model_performance(dataset, target, dtypes):
 #     print(numerical_columns)
 #
 #     return px.box(df, y=numerical_columns, title="Numerical Column Visualization for identifying column outliers")
-def box_plot(df, dtypes):
 
-    numerical_columns = []
-    for col in df.columns:
-        # histogram for numerical values
-        if dtypes[col] == 'floating' or dtypes[col] == 'integer' or dtypes[col] == 'numeric':
-            numerical_columns.append(col)
-            # Add traces for each numerical column
-    data = []
-    for column in numerical_columns:
-        data.append(go.Box(y=df[column], name=column))
-
-    layout = go.Layout(
-    title="Numerical Column Visualization for identifying column outliers",
-    yaxis_title="Value"
-                        )
-    fig = go.Figure(data=data, layout=layout)
-
-
-    return fig
 
 def clean_dataset(df):
     #same as from helper.py of openML
