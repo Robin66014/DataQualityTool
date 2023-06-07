@@ -95,11 +95,14 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         return children
     else:
         return dbc.Container(html.Div([html.Br(),html.H6('Welcome to the Data quality toolkit for assessing tabular machine learning datasets,'
-                                               ' use the tool by following these three easy steps: ', style={'textAlign': 'left'}), html.Ol(
+                                               ' use the tool by following these four easy steps: ', style={'textAlign': 'left'}), html.Ol(
             children=[
                 html.Li('Upload a file (allowed file types: .csv, .xls, .xlsx, .arff, .parquet).'),
                 html.Li('Select your target column, and if necessary, correct the automatically inferred data types of your columns.'),
-                html.Li("Press 'Run checks', your checks will now be run. (if your dataset is larger than 10,000 rows, 10,000 rows will randomly be sampled).")
+                html.Li("Press 'Run checks', your checks will now be run. (if your dataset is larger than 10,000 rows, 10,000 rows will randomly be sampled)."),
+                html.Li("Optional (task dependent): Press 'Run additional checks' to find label errors in your dataset and see the baseline performance on"
+                        " three ML models. In addition, you can perform a bias analysis.")
+
             ], style={'textAlign': 'left'}
         )]), fluid=True, class_name="dbc")
 
@@ -164,7 +167,8 @@ def parse_contents(contents, filename, date):
             # style_table={
             #     'overflowX': 'scroll'}
         ),
-        html.Button('Run checks', id='run-checks-button', n_clicks=0, style=button_style),
+        #html.Button('Run checks', id='run-checks-button', n_clicks=0, style=button_style),
+        dbc.Button('Run checks', id='run-checks-button', n_clicks=0, color='primary'),
         html.Hr(),  # horizontal line
 
         html.Div(dcc.Loading(children=html.Div(id='container-checks-button-pressed'), type='cube')),
@@ -173,17 +177,6 @@ def parse_contents(contents, filename, date):
         html.H3('Dataset overview', style={'textAlign': 'center'}),
         html.P('Click the dataset to edit a cell, press the EXPORT button to download the edited dataset',
                style={'textAlign': 'center'}),
-
-        # dbc.Table.from_dataframe(
-        #     df,
-        #     size='sm',
-        #     striped=False,
-        #     bordered=True,
-        #     hover=True,
-        #     style={
-        #         'overflowX': 'scroll'
-        #     }
-        # ),
 
         dash_table.DataTable(
             df.to_dict('records'),
@@ -233,32 +226,39 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         check_results = {}
         #duplicates & missing
         df_missing_values = duplicates_and_missing.missing_values(df)
+        check_results['df_missing_values'] = df_missing_values
         df_missing_values.to_csv('datasets/dataframes_label/df_missing_values.csv')
         #missingno_plot_src = duplicates_and_missing.missingno_plot(df)
         df_duplicates = duplicates_and_missing.duplicates(df, dtypes_dict)     #TODO: duplicates check testen
+        check_results['df_duplicates'] = df_duplicates
         df_duplicates.to_csv('datasets/dataframes_label/df_duplicates.csv')
         df_duplicate_columns = duplicates_and_missing.duplicate_column(df)
-        print(df_duplicate_columns)
+        check_results['df_duplicate_columns'] = df_duplicate_columns
         df_duplicate_columns.to_csv('datasets/dataframes_label/df_duplicate_columns.csv')
-        check_results.update({'missing_values_check' : df_missing_values, 'duplicate_instances_check' : df_duplicates, 'duplicate_columns_check' : df_duplicate_columns})
 
         #type integrity checks
         df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
+        check_results['df_amount_of_diff_values'] = df_amount_of_diff_values
         df_amount_of_diff_values.to_csv('datasets/dataframes_label/df_amount_of_diff_values.csv')
         df_mixed_data_types = type_integrity.mixed_data_types(df)
+        check_results['df_mixed_data_types'] = df_mixed_data_types
         df_mixed_data_types.to_csv('datasets/dataframes_label/df_mixed_data_types.csv')
-        df_special_characters = type_integrity.special_characters(df) #TODO: fixen
-        #df_special_characters.to_csv('datasets/dataframes_label/df_special_characters')
+        df_special_characters = type_integrity.special_characters(df)
+        check_results['df_special_characters'] = df_special_characters
+        df_special_characters.to_csv('datasets/dataframes_label/df_special_characters.csv')
         df_string_mismatch = type_integrity.string_mismatch(df)
+        check_results['df_string_mismatch'] = df_string_mismatch
         df_string_mismatch.to_csv('datasets/dataframes_label/df_string_mismatch.csv')
-        print(df_string_mismatch)
 
         #outliers & correlations
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
+        check_results['df_feature_feature_correlation'] = df_feature_feature_correlation
         df_feature_feature_correlation.to_csv('datasets/dataframes_label/df_feature_feature_correlation.csv')
         df_outliers, amount_of_outliers, threshold = outliers_and_correlations.outlier_detection(ds)
+        check_results['df_outliers'] = df_outliers
         df_outliers.to_csv('datasets/dataframes_label/df_outliers.csv')
-        #df_outlier_per_column = pd.DataFrame({"Check notification": ["No outliers per column detected"]})
+
+        #pandas dq report #TODO: vervangen voor eigen completere rapport
         pandas_dq_report = plot_and_transform_functions.pandas_dq_report(df, target)
 
         #the encoded dataframe
@@ -271,12 +271,11 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #missingno_plot = plot_and_transform_functions.missingno_plot(df)
         label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
         pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target)
-        box_plot = outliers_and_correlations.box_plot(df, dtypes_dict) #TODO checken
+        box_plot = outliers_and_correlations.box_plot(df, dtypes_dict)
 
         if task_type == 'classification': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
             df_feature_label_correlation.to_csv('datasets/dataframes_label/df_feature_label_correlation.csv')
-
             #label purity checks
             df_class_imbalance, fig_class_imbalance = label_purity.class_imbalance(ds)
             df_class_imbalance.to_csv('datasets/dataframes_label/df_class_imbalance.csv')
@@ -293,6 +292,9 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
             df_class_imbalance = pd.DataFrame(
                 {"Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
                              " is not a classification problem"]})
+        check_results['df_conflicting_labels'] = df_conflicting_labels
+        check_results['df_class_imbalance'] = df_class_imbalance
+        check_results['df_feature_label_correlation'] = df_feature_label_correlation
             #fig_class_imbalance = html.Div()
         #dataset_nutrition_label = calculate_dataset_nutrition_label(check_results)
         return html.Div([  # Data issue / check results section
@@ -476,12 +478,16 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
 
         ),
         html.Div(dcc.Loading(children=html.Div(id='bias_and_feature_information_accordion'), type='circle')),
+
+        #TODO: hier progress bars & data quality label
+        #progress_bars(),
+
         html.Hr(),  # horizontal line
         html.H3('Additional checks', style={'textAlign': 'center'}),
         html.P('Press the "Run additional checks" button to detect potential label errors using Cleanlab'
                ' & to perform a baseline performance assessment by training three ML models on your dataset.', style={'textAlign': 'center'}),
-        html.Button('Run additional checks', id='run-long-running-time-checks-button', n_clicks=0,
-                    style=button_style),
+        #html.Button('Run additional checks', id='run-long-running-time-checks-button', n_clicks=0, style=button_style),
+        dbc.Button('Run additional checks', id='run-long-running-time-checks-button', n_clicks=0, color='primary'),
         html.Div(dcc.Loading(children=html.Div(id='long_running_time_accordion'), type='circle')), #TODO: boosdoener traagheid
         ])
     else:

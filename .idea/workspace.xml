@@ -7,15 +7,11 @@
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Calculate_data_quality_label.py" beforeDir="false" afterPath="$PROJECT_DIR$/Calculate_data_quality_label.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/missingno_plot.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cached_files/2029240f6d1128be89ddc32729463129" beforeDir="false" afterPath="$PROJECT_DIR$/cached_files/2029240f6d1128be89ddc32729463129" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dashapp2.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dashapp3.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp3.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/label_purity.py" beforeDir="false" afterPath="$PROJECT_DIR$/label_purity.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/outliers_and_correlations.py" beforeDir="false" afterPath="$PROJECT_DIR$/outliers_and_correlations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plot_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_and_transform_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testingFile.py" beforeDir="false" afterPath="$PROJECT_DIR$/testingFile.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dashapp4.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp4.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_conflicting_labels.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_conflicting_labels.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_label_correlation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_label_correlation.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_mixed_data_types.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_mixed_data_types.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testingfile.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/testingfile.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -206,7 +202,7 @@
       <workItem from="1683273137571" duration="43049000" />
       <workItem from="1685518684834" duration="38096000" />
       <workItem from="1685632657464" duration="28346000" />
-      <workItem from="1685892311585" duration="68040000" />
+      <workItem from="1685892311585" duration="74016000" />
     </task>
     <servers />
   </component>
