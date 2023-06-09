@@ -12,5 +12,5 @@ xgboost==1.7.5
 missingno==0.5.2
 pandas_dq==1.22
 dash_bootstrap_components==1.4.1
-deepchecks
+deepchecks==0.11.1
 plotly
