@@ -78,29 +78,6 @@ def missing_values(dataset):
         missing_values_df = pd.DataFrame({"Check notification": ["Check passed: No missing values encountered"]})
     return missing_values_df #returns dataframe with missing values
 
-# def duplicates(df):
-#     """"Checks whether any duplicate rows exist and displays the row numbers that are duplicate in a table"""
-#     # checkDataDuplicates = deepchecks.tabular.checks.DataDuplicates(n_to_show=amount_of_columns, n_samples=amount_of_samples)
-#     # resultDataDuplicates = checkDataDuplicates.run(dataset)
-#
-#     try:
-#         #Check for duplicate rows find list of row numbers with the same feature values
-#         duplicates = df[df.duplicated(keep=False)]
-#         grouped = duplicates.groupby(list(df.columns), group_keys=False).apply(lambda x: list(x.index)).reset_index(name='Duplicates')
-#
-#         #merge & add original row number
-#         merged = pd.merge(df.reset_index(), grouped, on=list(df.columns), how='left')
-#         merged['Duplicates'] = merged.apply(lambda x: sorted(list(set(x['Duplicates'] + [x['index']])) if isinstance(x['Duplicates'], list) else [x['index']]), axis=1)
-#         merged = merged.rename(columns={'index':'Index first encountered'})
-#         #Drop duplicates from the df
-#         final_df = merged.drop_duplicates(subset=list(df.columns))
-#         final_df = dash_datatable_format_fix(final_df)
-#         print('@@final_DF duplicates',final_df)
-#         return final_df
-#
-#     except Exception as e:
-#         return pd.DataFrame({"Message": ["Check passed: No duplicate instances encountered"]})
-
 def duplicates(df, dtypes):
     columns_to_drop = []
     for column in df.columns:

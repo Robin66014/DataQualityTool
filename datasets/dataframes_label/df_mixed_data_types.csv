@@ -1,5 +1,5 @@
 ,Data type,Id,SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species
 strings,strings_fraction,0.0,0.0,0.0,0.0,0.0,1.0
 numbers,numbers_fraction,1.0,1.0,1.0,1.0,1.0,0.0
-strings_examples,strings_examples,,,,,,"'Iris-setosa', 'Iris-virginica', 'Iris-versicolor'"
-numbers_examples,numbers_examples,"76, 79, 107","4.9, 6.7, 5.9","4.1, 3.5, 3.3","1.5, 5.1, 1.3","0.2, 2.0, 1.5",
+strings_examples,strings_examples,,,,,,"'Iris-versicolor', 'Iris-virginica', 'Iris-versicolor'"
+numbers_examples,numbers_examples,"63, 101, 91","7.2, 5.8, 4.6","3.2, 2.8, 2.7","4.8, 6.7, 5.4","1.0, 2.2, 2.5",
