@@ -19,55 +19,6 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from category_encoders.target_encoder import TargetEncoder
 from sklearn.model_selection import train_test_split
 
-# def test_normality(dataset, column_types):
-#     """
-#     Performs normality tests on all numeric columns of a dataset and returns the test results.
-#
-#     Args:
-#         dataset (pandas DataFrame): The input dataset to test.
-#         column_types (list): A list of column data types for the dataset.
-#
-#     Returns:
-#         pandas DataFrame: A dataframe with the test results for all numeric columns.
-#     """
-#     #create empty df to store the test results
-#     test_results = pd.DataFrame(columns=['column', 'shapiro_wilk_stat', 'shapiro_wilk_pvalue',
-#                                          'anderson_stat', 'anderson_crit_vals', 'anderson_sig_levels',
-#                                          'kolmogorov_smirnov_stat', 'kolmogorov_smirnov_pvalue',
-#                                          'd_agostino_pearson_stat', 'd_agostino_pearson_pvalue'])
-#
-#     #iterate through each column in the dataset
-#     for col in dataset.columns:
-#         if column_types[col] == 'numeric':
-#             data = dataset[col]
-#
-#             #statistical tests
-#             shapiro_result = shapiro(data)
-#             anderson_result = anderson(data)
-#             ks_result = kstest(data, 'norm')
-#             d_ap_result = normaltest(data)
-#
-#             test_results = test_results.append({'column': col,
-#                                                 'shapiro_wilk_stat': shapiro_result.statistic,
-#                                                 'shapiro_wilk_pvalue': shapiro_result.pvalue,
-#                                                 'anderson_stat': anderson_result.statistic,
-#                                                 'anderson_crit_vals': anderson_result.critical_values,
-#                                                 'anderson_sig_levels': anderson_result.significance_level,
-#                                                 'kolmogorov_smirnov_stat': ks_result.statistic,
-#                                                 'kolmogorov_smirnov_pvalue': ks_result.pvalue,
-#                                                 'd_agostino_pearson_stat': d_ap_result.statistic,
-#                                                 'd_agostino_pearson_pvalue': d_ap_result.pvalue},
-#                                                ignore_index=True)
-#     return test_results
-
-
-def check_dimensionality(df):
-    if len(df)/len(df.columns) < 10:
-        return "You have very few instances ({}) compared to the number of features ({}). It is recommended to have at least 10 times more " \
-               "instances than features".format(len(df), len(df.columns))
-    return None
-
-
 def pandas_dq_report(dataset, target):
 
 
