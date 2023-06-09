@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/duplicates_and_missing.py" beforeDir="false" afterPath="$PROJECT_DIR$/duplicates_and_missing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -195,7 +195,7 @@
       <workItem from="1683273137571" duration="43049000" />
       <workItem from="1685518684834" duration="38096000" />
       <workItem from="1685632657464" duration="28346000" />
-      <workItem from="1685892311585" duration="104093000" />
+      <workItem from="1685892311585" duration="104436000" />
     </task>
     <servers />
   </component>
