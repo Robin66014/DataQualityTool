@@ -1,5 +1,5 @@
-,Data type,age,workclass,fnlwgt,education,educational-num,marital-status,occupation,relationship,race,gender,capital-gain,capital-loss,hours-per-week,native-country,income
-strings,strings_fraction,0.0,1.0,0.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,1.0,1.0
-numbers,numbers_fraction,1.0,0.0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
-strings_examples,strings_examples,,"'Private', 'Private', 'Private'",,"'Bachelors', '5th-6th', 'HS-grad'",,"'Married-civ-spouse', 'Never-married', 'Married-civ-spouse'","'Tech-support', 'Exec-managerial', 'Adm-clerical'","'Husband', 'Not-in-family', 'Husband'","'Black', 'White', 'White'","'Female', 'Male', 'Male'",,,,"'United-States', 'United-States', 'United-States'","'>50K', '<=50K', '<=50K'"
-numbers_examples,numbers_examples,"53, 27, 44",,"164730, 60548, 166419",,"10, 9, 7",,,,,,"0, 0, 0","0, 0, 0","60, 70, 40",,
+,Data type,work_year,experience_level,employment_type,job_title,salary,salary_currency,salary_in_usd,employee_residence,remote_ratio,company_location,company_size
+strings,strings_fraction,0.0,1.0,1.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,1.0
+numbers,numbers_fraction,1.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0
+strings_examples,strings_examples,,"'MI', 'MI', 'SE'","'FT', 'FT', 'FT'","'Data Scientist', 'Data Analyst', 'Data Analyst'",,"'USD', 'EUR', 'USD'",,"'US', 'US', 'IE'",,"'US', 'US', 'GB'","'M', 'M', 'M'"
+numbers_examples,numbers_examples,"2022, 2023, 2023",,,,"170000, 201000, 150000",,"201000, 304000, 200000",,"0, 100, 0",,

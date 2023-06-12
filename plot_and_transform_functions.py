@@ -287,3 +287,35 @@ def dash_datatable_format_fix(df):
     df = df.applymap(remove_brackets)
 
     return df
+
+
+def upsample_minority_classes(df, target):
+    """Copies instances where target class count is less than 5 and duplicates them until 5 is reached
+     (which is necessary for label error prediction, cross validation splits)."""
+    classes = df[target].unique()
+    # Initialize a list to hold dataframes
+    dfs = []
+    rare_classes = 0
+    error_message = ''
+    # Iterate over each class
+    for class_value in classes:
+        class_df = df[df[target] == class_value]
+
+        # Check if this class count is less than 5
+        if len(class_df) < 5:
+            # If so, upsample this class data by duplicating rows
+            rare_classes += 1
+            class_df = class_df.sample(n=5, replace=True)
+
+        # Add the resulting class dataframe to our list
+        dfs.append(class_df)
+    if rare_classes > 0:
+        error_message = 'WARNING: {} rare classes have been detected. These instances have been upsampled to the minimum of 5 instances per class' \
+                        ' (just for this check).'.format(rare_classes)
+    # Concatenate all the dataframes in our list
+    upsampled_df = pd.concat(dfs, axis=0)
+
+    # Shuffle the rows of the upsampled dataframe to mix the classes
+    upsampled_df = upsampled_df.sample(frac=1).reset_index(drop=True)
+
+    return upsampled_df, error_message

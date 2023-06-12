@@ -2,6 +2,7 @@ import pandas
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
+from sklearn.model_selection import StratifiedKFold
 from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
@@ -60,17 +61,22 @@ def conflicting_labels(dataset):
 def cleanlab_label_error(encoded_dataset, target):
     """"Function that finds potential label errors (due to annotator mistakes), edge cases, and otherwise ambiguous examples"""
     model_XGBC = XGBClassifier(tree_method="hist", enable_categorical=True)  # hist is fastest tree method of XGBoost, use default model
-    # TODO: rekening houden dat deze test irrelevant is voor regression of labelless problems
 
     data_no_labels = encoded_dataset.drop(columns=[target])
     labels = encoded_dataset[target]
 
+    #create cross validation folds KFold object
+    stratified_splits = StratifiedKFold(n_splits=5)
+
+    # Obtain predicted probabilities using 5-fold stratified cross-validation
+    pred_probs = cross_val_predict(model_XGBC, data_no_labels, labels, cv=stratified_splits, method='predict_proba')
+
     #obtain predicted probabilities using 5 fold cross validation
-    pred_probs = cross_val_predict(model_XGBC, data_no_labels, labels, method='predict_proba')
+    #pred_probs = cross_val_predict(model_XGBC, data_no_labels, labels, method='predict_proba')
 
     preds = np.argmax(pred_probs, axis=1)
-    acc_original = accuracy_score(preds, labels)
-    print(f"Accuracy with original data: {round(acc_original * 100, 1)}%")
+    accuracy_score_xgbc = round((accuracy_score(preds, labels) * 100), 1)
+    print(f"Accuracy with original data: {accuracy_score_xgbc}%")
 
     #use cleanlabs built in confident learning method to find label issues
     cl = cleanlab.classification.CleanLearning()
@@ -84,7 +90,7 @@ def cleanlab_label_error(encoded_dataset, target):
     issues_dataframe = dash_datatable_format_fix(issues_dataframe)
     issues_dataframe_only_errors = dash_datatable_format_fix(issues_dataframe_only_errors)
 
-    return issues_dataframe, issues_dataframe_only_errors, wrong_label_count
+    return issues_dataframe, issues_dataframe_only_errors, wrong_label_count, accuracy_score_xgbc
 
 
 

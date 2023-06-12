@@ -1,2 +1,2 @@
-,age,workclass,fnlwgt,education,educational-num,marital-status,occupation,relationship,race,gender,capital-gain,capital-loss,hours-per-week,native-country,income
-0,62,7,979,16,16,7,15,6,5,2,43,24,56,28,2
+,work_year,experience_level,employment_type,job_title,salary,salary_currency,salary_in_usd,employee_residence,remote_ratio,company_location,company_size
+0,4,4,4,93,815,20,1035,78,3,72,3

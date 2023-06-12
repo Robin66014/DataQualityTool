@@ -1,16 +1,12 @@
 Column,Columns,Percent missing (NA),Zeros,Potential total missingness percentage in column
-age,age,0.0,0,0.0
-workclass,workclass,0.0,0,0.0
-fnlwgt,fnlwgt,0.0,0,0.0
-education,education,0.0,0,0.0
-educational-num,educational-num,0.0,0,0.0
-marital-status,marital-status,0.0,0,0.0
-occupation,occupation,0.0,0,0.0
-relationship,relationship,0.0,0,0.0
-race,race,0.0,0,0.0
-gender,gender,0.0,0,0.0
-capital-gain,capital-gain,0.0,895,89.5
-capital-loss,capital-loss,0.0,953,95.3
-hours-per-week,hours-per-week,0.0,0,0.0
-native-country,native-country,0.0,0,0.0
-income,income,0.0,0,0.0
+work_year,work_year,0.0,0,0.0
+experience_level,experience_level,0.0,0,0.0
+employment_type,employment_type,0.0,0,0.0
+job_title,job_title,0.0,0,0.0
+salary,salary,0.0,0,0.0
+salary_currency,salary_currency,0.0,0,0.0
+salary_in_usd,salary_in_usd,0.0,0,0.0
+employee_residence,employee_residence,0.0,0,0.0
+remote_ratio,remote_ratio,0.0,1923,51.21
+company_location,company_location,0.0,0,0.0
+company_size,company_size,0.0,0,0.0

@@ -644,9 +644,10 @@ def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target):#, n, 
                 df = fetch_data(filepath)
 
                 df = plot_and_transform_functions.clean_dataset(df)
+                df, error_message = plot_and_transform_functions.upsample_minority_classes(df, target) #upsample instances that occur less than 5 times
                 encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
                                                                                                               dtypes_dict)
-                _, issues_dataframe_only_errors, wrong_label_count = label_purity.cleanlab_label_error(encoded_dataframe, target)
+                _, issues_dataframe_only_errors, wrong_label_count, accuracy_model = label_purity.cleanlab_label_error(encoded_dataframe, target)
                 issues_dataframe_only_errors['given_label'] = issues_dataframe_only_errors['given_label'].astype(int)
                 issues_dataframe_only_errors['given_label'] = issues_dataframe_only_errors['given_label'].map(mapping_encoding)
                 issues_dataframe_only_errors['predicted_label'] = issues_dataframe_only_errors['predicted_label'].astype(int)
@@ -670,7 +671,8 @@ def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target):#, n, 
                                                                     html.A('Confident learning paper',
                                                                            href='https://arxiv.org/abs/1911.00068'),
                                                                     ' . The numeric label quality score quantifies clenlabs confidence that the label is correct '
-                                                                    '(a low score thus indicates a high probability that the label is wrong).'],
+                                                                    '(a low score thus indicates a high probability that the label is wrong). The accuracy of the XgBoost Classifier model used to make the predictions'
+                                                                    ' is {}%, when this score is low, cleanlabs predictions could be less accurate. {}'.format(accuracy_model, error_message)],
                                                                     style={'textAlign': 'center'}),
                                                                 # html.Div(dcc.Loading(id='loading-4',children=html.Div(id="cleanlab_table"))),
                                                                 html.H6(f'Cleanlab detected {wrong_label_count} potential label errors.'),

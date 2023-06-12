@@ -6,10 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Type_integrity.py" beforeDir="false" afterPath="$PROJECT_DIR$/Type_integrity.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_amount_of_diff_values.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_amount_of_diff_values.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_class_imbalance.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_class_imbalance.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_conflicting_labels.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_conflicting_labels.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_duplicates.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_duplicates.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_feature_correlation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_feature_correlation.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_label_correlation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_label_correlation.csv" afterDir="false" />
@@ -18,7 +18,8 @@
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_outliers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_outliers.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_special_characters.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_special_characters.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_string_mismatch.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_string_mismatch.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/label_purity.py" beforeDir="false" afterPath="$PROJECT_DIR$/label_purity.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plot_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_and_transform_functions.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -209,7 +210,7 @@
       <workItem from="1685518684834" duration="38096000" />
       <workItem from="1685632657464" duration="28346000" />
       <workItem from="1685892311585" duration="105310000" />
-      <workItem from="1686575138287" duration="362000" />
+      <workItem from="1686575138287" duration="8168000" />
     </task>
     <servers />
   </component>
