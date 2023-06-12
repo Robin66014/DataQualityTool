@@ -1,5 +1,5 @@
-,Data type,Id,SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species
-strings,strings_fraction,0.0,0.0,0.0,0.0,0.0,1.0
-numbers,numbers_fraction,1.0,1.0,1.0,1.0,1.0,0.0
-strings_examples,strings_examples,,,,,,"'Iris-versicolor', 'Iris-virginica', 'Iris-versicolor'"
-numbers_examples,numbers_examples,"63, 101, 91","7.2, 5.8, 4.6","3.2, 2.8, 2.7","4.8, 6.7, 5.4","1.0, 2.2, 2.5",
+,Data type,age,workclass,fnlwgt,education,educational-num,marital-status,occupation,relationship,race,gender,capital-gain,capital-loss,hours-per-week,native-country,income
+strings,strings_fraction,0.0,1.0,0.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,1.0,1.0
+numbers,numbers_fraction,1.0,0.0,1.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+strings_examples,strings_examples,,"'Private', 'Private', 'Private'",,"'Bachelors', '5th-6th', 'HS-grad'",,"'Married-civ-spouse', 'Never-married', 'Married-civ-spouse'","'Tech-support', 'Exec-managerial', 'Adm-clerical'","'Husband', 'Not-in-family', 'Husband'","'Black', 'White', 'White'","'Female', 'Male', 'Male'",,,,"'United-States', 'United-States', 'United-States'","'>50K', '<=50K', '<=50K'"
+numbers_examples,numbers_examples,"53, 27, 44",,"164730, 60548, 166419",,"10, 9, 7",,,,,,"0, 0, 0","0, 0, 0","60, 70, 40",,

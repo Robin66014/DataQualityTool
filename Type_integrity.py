@@ -7,8 +7,6 @@ from sklearn.datasets import load_iris
 from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
 from plot_and_transform_functions import dash_datatable_format_fix
-data = pd.read_csv('datasets\Iris.csv')
-#dataset = Dataset(data, label = 'Species')
 amount_of_columns = 10000000
 amount_of_samples = 10000000
 

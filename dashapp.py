@@ -18,8 +18,8 @@ import os
 import calculate_dq_label
 from DataTypeInference import obtain_feature_type_table, createDatasetObject
 import fairness_checks
-import duplicates_and_missing
-import type_integrity
+import Duplicates_and_Missing
+import Type_integrity
 import outliers_and_correlations
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
@@ -232,28 +232,28 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #Running of the checks
         check_results = {}
         #duplicates & missing
-        df_missing_values = duplicates_and_missing.missing_values(df)
+        df_missing_values = Duplicates_and_Missing.missing_values(df)
         check_results['df_missing_values'] = df_missing_values
         df_missing_values.to_csv('datasets/dataframes_label/df_missing_values.csv')
-        #missingno_plot_src = duplicates_and_missing.missingno_plot(df)
-        df_duplicates = duplicates_and_missing.duplicates(df, dtypes_dict)     #TODO: duplicates check testen
+        #missingno_plot_src = Duplicates_and_Missing.missingno_plot(df)
+        df_duplicates = Duplicates_and_Missing.duplicates(df, dtypes_dict)     #TODO: duplicates check testen
         check_results['df_duplicates'] = df_duplicates
         df_duplicates.to_csv('datasets/dataframes_label/df_duplicates.csv')
-        df_duplicate_columns = duplicates_and_missing.duplicate_column(df)
+        df_duplicate_columns = Duplicates_and_Missing.duplicate_column(df)
         check_results['df_duplicate_columns'] = df_duplicate_columns
         df_duplicate_columns.to_csv('datasets/dataframes_label/df_duplicate_columns.csv')
 
         #type integrity checks
-        df_amount_of_diff_values = type_integrity.amount_of_diff_values(df)
+        df_amount_of_diff_values = Type_integrity.amount_of_diff_values(df)
         check_results['df_amount_of_diff_values'] = df_amount_of_diff_values
         df_amount_of_diff_values.to_csv('datasets/dataframes_label/df_amount_of_diff_values.csv')
-        df_mixed_data_types = type_integrity.mixed_data_types(df)
+        df_mixed_data_types = Type_integrity.mixed_data_types(df)
         check_results['df_mixed_data_types'] = df_mixed_data_types
         df_mixed_data_types.to_csv('datasets/dataframes_label/df_mixed_data_types.csv')
-        df_special_characters = type_integrity.special_characters(df)
+        df_special_characters = Type_integrity.special_characters(df)
         check_results['df_special_characters'] = df_special_characters
         df_special_characters.to_csv('datasets/dataframes_label/df_special_characters.csv')
-        df_string_mismatch = type_integrity.string_mismatch(df)
+        df_string_mismatch = Type_integrity.string_mismatch(df)
         check_results['df_string_mismatch'] = df_string_mismatch
         df_string_mismatch.to_csv('datasets/dataframes_label/df_string_mismatch.csv')
 
@@ -304,7 +304,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         check_results['df_feature_label_correlation'] = df_feature_label_correlation
         calculated_scores, DQ_label = calculate_dq_label.calculate_dataset_nutrition_label(df, check_results)
         missing_and_duplicates_score = round((calculated_scores['duplicate_instances'] + calculated_scores['missing_values'] + calculated_scores['duplicate_columns'])/3,2)
-        type_integrity_score = round((calculated_scores['amount_of_diff_values'] + calculated_scores['mixed_data_types'] + calculated_scores['string_mismatch'] + calculated_scores['special_characters'])/4,2)
+        Type_integrity_score = round((calculated_scores['amount_of_diff_values'] + calculated_scores['mixed_data_types'] + calculated_scores['string_mismatch'] + calculated_scores['special_characters'])/4,2)
         outliers_and_correlations_score = round((calculated_scores['feature_correlations'] + calculated_scores['outliers'])/2,2)
         label_purity_score = round(calculated_scores['conflicting_labels'],2)
         return html.Div([  # Data issue / check results section
@@ -401,7 +401,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
                                                           dbc.Table.from_dataframe(df_string_mismatch, striped=False,
                                                                                    bordered=True, hover=True, style={
                                                                   'overflowX': 'scroll'
-                                                              })], title="Type integrity ({}/100)".format(type_integrity_score),
+                                                              })], title="Type integrity ({}/100)".format(Type_integrity_score),
                               ),
                               dbc.AccordionItem(
                                   [

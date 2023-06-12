@@ -1,3 +1,2 @@
-,SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species,indexes,amount of duplicates
-19,4.9,3.1,1.5,0.1,Iris-setosa,"9, 34, 37",2
-74,5.8,2.7,5.1,1.9,Iris-virginica,"101, 142",1
+,age,workclass,fnlwgt,education,educational-num,marital-status,occupation,relationship,race,gender,capital-gain,capital-loss,hours-per-week,native-country,income,indexes,amount of duplicates
+174,24,Private,194630,Bachelors,13,Never-married,Prof-specialty,Not-in-family,White,Male,0,0,35,United-States,<=50K,"488, 864",1

@@ -1,2 +1,2 @@
-,Iris-setosa,Iris-versicolor,Iris-virginica
-0,0.33,0.33,0.33
+,<=50K,>50K
+0,0.76,0.24

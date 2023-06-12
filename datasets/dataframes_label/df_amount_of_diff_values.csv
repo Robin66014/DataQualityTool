@@ -1,2 +1,2 @@
-,Id,SepalLengthCm,SepalWidthCm,PetalLengthCm,PetalWidthCm,Species
-0,150,35,23,43,22,3
+,age,workclass,fnlwgt,education,educational-num,marital-status,occupation,relationship,race,gender,capital-gain,capital-loss,hours-per-week,native-country,income
+0,62,7,979,16,16,7,15,6,5,2,43,24,56,28,2

@@ -1,2 +1,16 @@
-,Check notification
-0,Check passed: No missing values encountered
+Column,Columns,Percent missing (NA),Zeros,Potential total missingness percentage in column
+age,age,0.0,0,0.0
+workclass,workclass,0.0,0,0.0
+fnlwgt,fnlwgt,0.0,0,0.0
+education,education,0.0,0,0.0
+educational-num,educational-num,0.0,0,0.0
+marital-status,marital-status,0.0,0,0.0
+occupation,occupation,0.0,0,0.0
+relationship,relationship,0.0,0,0.0
+race,race,0.0,0,0.0
+gender,gender,0.0,0,0.0
+capital-gain,capital-gain,0.0,895,89.5
+capital-loss,capital-loss,0.0,953,95.3
+hours-per-week,hours-per-week,0.0,0,0.0
+native-country,native-country,0.0,0,0.0
+income,income,0.0,0,0.0
