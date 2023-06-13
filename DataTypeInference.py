@@ -26,7 +26,6 @@ def createDatasetObject(df, dtypes, target):
         if (value == 'categorical' or value == 'boolean') and key != target:
             categorical_features.append(key)
     #date_name = #todo hoe date_time en ID kolom meenemen in Dataset object? Gewoon weglaten in het begin?
-    print('@@@@@feature_types', dtypes)
     if target != 'None':
         if df[target].nunique() == 2: #binary classification
             ds = Dataset(df, label=target, cat_features=categorical_features, label_type='binary')
