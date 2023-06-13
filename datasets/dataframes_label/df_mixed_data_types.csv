@@ -1,5 +1,5 @@
-,Data type,work_year,experience_level,employment_type,job_title,salary,salary_currency,salary_in_usd,employee_residence,remote_ratio,company_location,company_size
-strings,strings_fraction,0.0,1.0,1.0,1.0,0.0,1.0,0.0,1.0,0.0,1.0,1.0
-numbers,numbers_fraction,1.0,0.0,0.0,0.0,1.0,0.0,1.0,0.0,1.0,0.0,0.0
-strings_examples,strings_examples,,"'MI', 'MI', 'SE'","'FT', 'FT', 'FT'","'Data Scientist', 'Data Analyst', 'Data Analyst'",,"'USD', 'EUR', 'USD'",,"'US', 'US', 'IE'",,"'US', 'US', 'GB'","'M', 'M', 'M'"
-numbers_examples,numbers_examples,"2022, 2023, 2023",,,,"170000, 201000, 150000",,"201000, 304000, 200000",,"0, 100, 0",,
+,Data type,in1,in2,in3,in4,out1
+strings,strings_fraction,0.0,0.0,0.0,0.0,0.0
+numbers,numbers_fraction,1.0,1.0,1.0,1.0,1.0
+strings_examples,strings_examples,,,,,
+numbers_examples,numbers_examples,"12, 12, 2","2, 2, 3","9, 6, 6","14, 4, 0","4, 8, 3"

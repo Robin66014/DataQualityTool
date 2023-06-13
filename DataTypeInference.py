@@ -19,18 +19,18 @@ def obtain_feature_type_table(df):
     return feature_type_table
 
 
-def createDatasetObject(df, feature_types, target):
+def createDatasetObject(df, dtypes, target):
     #obtain catgeorical feature names
     categorical_features = []
-    for key, value in feature_types.items():
-        if value == 'categorical' and key != target:
+    for key, value in dtypes.items():
+        if (value == 'categorical' or value == 'boolean') and key != target:
             categorical_features.append(key)
     #date_name = #todo hoe date_time en ID kolom meenemen in Dataset object? Gewoon weglaten in het begin?
-
+    print('@@@@@feature_types', dtypes)
     if target != 'None':
         if df[target].nunique() == 2: #binary classification
             ds = Dataset(df, label=target, cat_features=categorical_features, label_type='binary')
-        elif df[target].nunique() > 2 and df[target].dtype == 'object': #likely a multi-class classifcation problem
+        elif df[target].nunique() > 2 and (dtypes[target] == 'categorical' or dtypes[target] == 'boolean'): #likely a multi-class classifcation problem
             ds = Dataset(df, label=target, cat_features=categorical_features, label_type='multiclass')
         else: #likely a regression problem
             ds = Dataset(df, label=target, cat_features=categorical_features, label_type='regression')

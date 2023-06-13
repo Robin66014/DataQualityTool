@@ -49,7 +49,7 @@ cache_dir = os.path.join(current_directory, 'cached_files')
 #     'CACHE_DIR': cache_dir  # Directory where cache files will be stored
 # })
 
-app.title = "Data quality toolkit3"
+app.title = "Data quality toolkit"
 
 app.layout = dbc.Container(html.Div([
     html.H1("Data quality toolkit", style={'fontSize':50, 'textAlign':'center'}),
