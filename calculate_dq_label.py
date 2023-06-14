@@ -172,7 +172,11 @@ def calculate_dataset_nutrition_label(df, check_results):
                 min_value = float(class_imbalance_df.min().min())
                 ratio_min_max = min_value/max_value
                 calculated_scores['class_imbalance'] =  round(ratio_min_max * 100,2)
+
+            if calculated_scores['class_imbalance'] < 10:
                 calculated_scores['class_imbalance_color'] = check_warning
+            else:
+                calculated_scores['class_imbalance_color'] = check_passed
 
         elif check_res == 'df_conflicting_labels': #MODERATE ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
