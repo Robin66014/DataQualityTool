@@ -10,7 +10,7 @@ cleanlab==2.3.1
 arff==0.9
 xgboost==1.7.5
 missingno==0.5.2
-pandas_dq==1.22
+pandas_dq==1.28
 dash_bootstrap_components==1.4.1
 deepchecks==0.11.1
 plotly==5.15.0
