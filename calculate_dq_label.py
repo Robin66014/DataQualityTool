@@ -98,14 +98,13 @@ def calculate_dataset_nutrition_label(df, check_results):
             else:
                 special_characters_df = check_results['df_special_characters']
                 calculated_scores['special_characters'] = round(((columns_df-len(special_characters_df))/columns_df)*100,2)
-
             if len(special_characters_df) > 0:
                 calculated_scores['special_characters_color'] = check_failed
                 penalty_points += minor
             else:
                 calculated_scores['special_characters_color'] = check_passed
 
-        elif check_res == 'df_string_mismatch': #MODERATE ISSUE
+        elif check_res == 'df_string_mismatch': #MINOR ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
                 calculated_scores['string_mismatch'] =  100
                 calculated_scores['string_mismatch_color'] = check_passed
@@ -124,7 +123,7 @@ def calculate_dataset_nutrition_label(df, check_results):
 
             if (len(outliers_df)/rows_df)*100 > 1:
                 calculated_scores['outliers_color'] = check_failed
-                penalty_points += moderate
+                penalty_points += minor
             else:
                 calculated_scores['outliers_color'] = check_passed
 

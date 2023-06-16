@@ -327,7 +327,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
                                                         html.H3('Missing values check', style={'textAlign': 'center'}),
                                                           html.P(
                                                               'Checks the type and amount of missing values. The potential total missingness column is the'
-                                                              ' percent missing plus some missingness types (like zeros) that are often used to indicate missing values',
+                                                              ' percent missing plus some missingness types (zeros, "?" and "-") that are often used to indicate missing values',
                                                               style={'textAlign': 'center'}),
                                                           dbc.Table.from_dataframe(df_missing_values, striped=False,
                                                                                    bordered=True, hover=True, style={

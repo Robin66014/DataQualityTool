@@ -10,11 +10,9 @@ def sensitive_feature_combinations(dataset_original, sensitive_features, target_
      used for plotting the stacked bar chart later on"""
 
     dataset = dataset_original.copy()
-    #TODO: callback maken die sensitive features ingeeft
-    #TODO: iets bedenken voor regression
     #bin numeric sensitive features into 5 bins
     for feat in sensitive_features:
-        if pd.api.types.is_numeric_dtype(dataset[feat]):        #TODO: baseren op data type inference sortinghat
+        if pd.api.types.is_numeric_dtype(dataset[feat]):
         #if dtypes[col] == 'floating' or dtypes[col] == 'numeric' or dtypes[col] == 'integer':
             dataset[feat] = pd.cut(dataset[feat], bins=bins)
 

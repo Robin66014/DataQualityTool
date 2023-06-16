@@ -221,7 +221,7 @@ def baseline_model_performance(dataset, target, dtypes):
     #train models for regression and classification
     models = []
     if problem_type == 'regression':
-        models.append(('Logistic Regression', LinearRegression(n_jobs=-1)))
+        models.append(('Linear Regression', LinearRegression(n_jobs=-1)))
         models.append(('Random Forest', RandomForestRegressor(n_jobs=-1)))
         models.append(('SVM', SVR()))
     elif problem_type == 'classification':

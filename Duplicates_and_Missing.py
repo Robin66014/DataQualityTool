@@ -20,15 +20,33 @@ def missing_values(dataset):
     resultMixedNulls = checkMixedNulls.run(dataset) #dictionary containing the types of potential missing values like 'N/A', ' '
 
     # create empty dictionary to store the counts of zeros
+    #TODO: '?' behandelen als missing value?
     zeros = []
+    question_marks = []
+    question_marks_percentage_list = []
+    dashes = []
+    dashes_percentage_list = []
     zeros_percentage_list = []
     for col in dataset.columns:
         # count the number of zeros in the column and add to dictionary
         zeros_count = (dataset[col] == 0).sum()
+        question_marks_count = (dataset[col] == '?').sum()
+        dashes_count = (dataset[col] == '-').sum()
+        #zeros
         zeros_percentage = (dataset[col] == 0).mean() * 100
         zeros_percentage = round(zeros_percentage, 2)
         zeros.append(zeros_count)
         zeros_percentage_list.append(zeros_percentage)
+        #question marks
+        question_marks_percentage = (dataset[col] == '?').mean() * 100
+        question_marks_percentage = round(question_marks_percentage, 2)
+        question_marks.append(question_marks_count)
+        question_marks_percentage_list.append(question_marks_percentage)
+        #dashes
+        dashes_percentage = (dataset[col] == '-').mean() * 100
+        dashes_percentage = round(dashes_percentage, 2)
+        dashes.append(dashes_count)
+        dashes_percentage_list.append(dashes_percentage)
     # create a new dataframe from the zeros_dict
 
     # obtain all the different types of potential missing values in the dataset
@@ -68,9 +86,17 @@ def missing_values(dataset):
 
     modified_list = [name.replace('"', '') for name in missing_values_df.columns]  # remove double quotes in values, like '"None"' --> 'None'
     missing_values_df.columns = modified_list
-    # append the zeros list to the original dataframe
+    # append the zeros, question marks and dashes list to the original dataframe
     missing_values_df.insert(len(missing_values_df.columns) - 1, 'Zeros', zeros)
+    missing_values_df.insert(len(missing_values_df.columns) - 1, "?", question_marks)
+    missing_values_df.insert(len(missing_values_df.columns) - 1, "-", dashes)
     missing_values_df['Potential total missingness percentage in column'] = [x + zeros_percentage_list[i] for i, x in enumerate(missing_values_df['Potential total missingness percentage in column'])]
+    missing_values_df['Potential total missingness percentage in column'] = [x + question_marks_percentage_list[i] for i, x in
+                                                                             enumerate(missing_values_df[
+                                                                                           'Potential total missingness percentage in column'])]
+    missing_values_df['Potential total missingness percentage in column'] = [x + dashes_percentage_list[i] for i, x in
+                                                                             enumerate(missing_values_df[
+                                                                                           'Potential total missingness percentage in column'])]
     total_potential_missingness_sum = missing_values_df['Potential total missingness percentage in column'].sum()
     missing_values_df['Percent missing (NA)'] = round(missing_values_df['Percent missing (NA)']*100, 3)
     missing_values_df = dash_datatable_format_fix(missing_values_df)
