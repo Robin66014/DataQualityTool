@@ -658,6 +658,7 @@ def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target):#, n, 
                 {"Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
                              " is not a classification problem"]})
                 wrong_label_count = 0
+                accuracy_model = 0
 
             return dbc.Accordion(
                                 children=[
@@ -807,4 +808,4 @@ def dq_checks_overview(check_results, DQ_label):
     )
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(host='127.0.0.1', port='8050', debug=True)

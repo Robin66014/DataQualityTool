@@ -5,25 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/AutoML_Benchmark_Train.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/AutoML_Benchmark_Train_datasets_with_errors.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OpenML-labelling.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OpenML_CC18_datasets_with_errors.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/OpenML_CC18_labelled.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/datasets/is_test.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/datasets/openml_dataset_task2121.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/datasets/train_processed.parquet" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/datasets/train_processed1.csv" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/my_dict.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/testing_file.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/testing_file2.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Duplicates_and_Missing.py" beforeDir="false" afterPath="$PROJECT_DIR$/Duplicates_and_Missing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cached_files/05e8ca56-345d-4974-9f18-fd2f9a1d71b6_Iris.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cached_files/2e5463f0-a157-49a8-823e-cf7272b70385_Iris.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cached_files/499871e8-df3c-4e8b-b0cc-3a697624060c_Iris.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cached_files/e27b8dc2-4edc-462e-82fe-fc55002dae62_Iris.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cached_files/fdfff420-4939-48bd-b2fe-0197cdf97090_ERA_iko.pkl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/calculate_dq_label.py" beforeDir="false" afterPath="$PROJECT_DIR$/calculate_dq_label.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_amount_of_diff_values.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_amount_of_diff_values.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_class_imbalance.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_class_imbalance.csv" afterDir="false" />
@@ -34,10 +17,7 @@
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_missing_values.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_missing_values.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_mixed_data_types.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_mixed_data_types.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_outliers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_outliers.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_special_characters.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_special_characters.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_string_mismatch.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_string_mismatch.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fairness_checks.py" beforeDir="false" afterPath="$PROJECT_DIR$/fairness_checks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plot_and_transform_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot_and_transform_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,6 +30,17 @@
         <option value="Python Script" />
         <option value="Jupyter Notebook" />
       </list>
+    </option>
+  </component>
+  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
+    <envs>
+      <env key="FLASK_APP" value="app" />
+    </envs>
+    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
+    <option name="myEnvs">
+      <map>
+        <entry key="FLASK_APP" value="app" />
+      </map>
     </option>
   </component>
   <component name="Git.Settings">
@@ -74,7 +65,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/robin/OneDrive - TU Eindhoven/Documents Robinkaelen Onedrive/Documenten/GitHub/DataQualityToolBugged/dashapp.py&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/robin/OneDrive - TU Eindhoven/Documents Robinkaelen Onedrive/Documenten/GitHub/pywash-master/app.py&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -228,7 +219,8 @@
       <workItem from="1685518684834" duration="38096000" />
       <workItem from="1685632657464" duration="28346000" />
       <workItem from="1685892311585" duration="105310000" />
-      <workItem from="1686575138287" duration="42067000" />
+      <workItem from="1686575138287" duration="47091000" />
+      <workItem from="1687096492036" duration="2836000" />
     </task>
     <servers />
   </component>
