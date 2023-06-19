@@ -109,7 +109,8 @@ def calculate_dataset_nutrition_label(df, check_results):
                 calculated_scores['string_mismatch'] =  100
                 calculated_scores['string_mismatch_color'] = check_passed
             else:
-                calculated_scores['string_mismatch'] =  100 #TODO: wat hiermee doen?
+                columns_with_stringmismatch = check_results[check_res]['Column Name'].nunique()
+                calculated_scores['string_mismatch'] =  round(((columns_df-columns_with_stringmismatch)/columns_df)*100, 2)
                 calculated_scores['string_mismatch_color'] = check_failed
                 penalty_points += moderate
 
