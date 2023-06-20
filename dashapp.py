@@ -1,4 +1,5 @@
 import pandas as pd
+import deepchecks
 import plotly.express as px
 import plotly.graph_objects as go
 import dash
@@ -13,8 +14,6 @@ import time
 import scipy.io.arff as arff
 from sklearn.preprocessing import LabelEncoder
 import dash_mantine_components as dmc
-import os
-
 import calculate_dq_label
 from DataTypeInference import obtain_feature_type_table, createDatasetObject
 import fairness_checks
@@ -26,6 +25,10 @@ import dash_bootstrap_components as dbc
 import label_purity
 import plot_and_transform_functions
 import testingFile
+import os
+import logging
+deepchecks.set_verbosity(logging.ERROR)
+os.environ['DISABLE_LATEST_VERSION_CHECK'] = 'True'
 
 #df = pd.read_csv('datasets\Iris.csv')
 #sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
