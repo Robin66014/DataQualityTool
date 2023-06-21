@@ -125,12 +125,16 @@ def label_encode_dataframe(df, dtypes):
 
     return df, mapping_df
 
-def pcp_plot(encoded_df, target):
+def pcp_plot(encoded_df, target, outlier_prob_scores):
     #TODO: clean dataset?
-    if target != 'None':
-        fig = px.parallel_coordinates(encoded_df, color=target)
+    if not outlier_prob_scores.empty:
+        pcp_df = pd.concat([encoded_df, outlier_prob_scores], axis=1)
+        fig = px.parallel_coordinates(pcp_df, color='Outlier Probability Score')
     else:
-        fig = px.parallel_coordinates(encoded_df)
+        if target != 'None':
+            fig = px.parallel_coordinates(encoded_df, color=target)
+        else:
+            fig = px.parallel_coordinates(encoded_df)
 
     return fig
 

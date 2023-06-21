@@ -27,7 +27,7 @@ def calculate_dataset_nutrition_label(df, check_results):
                 column_count_check_passed = columns_df
             else:
                 missing_values_df = check_results['df_missing_values']
-                column_count_check_passed = int((missing_values_df['Percent missing (NA)'].astype(float) < max_missingness_percentage_allowed).sum())
+                column_count_check_passed = int((missing_values_df['Percent missing'].astype(float) < max_missingness_percentage_allowed).sum())
                 calculated_scores['missing_values'] = round((column_count_check_passed/columns_df)*100, 2)
 
             if column_count_check_passed < columns_df:

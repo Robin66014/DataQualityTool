@@ -85,7 +85,7 @@ def missing_values(dataset):
 
     #append column to df with total missingness per column
     missing_values_df['Potential total missingness percentage in column'] = total_missing_in_column
-    missing_values_df.rename(columns={"Percent of nulls in sample": "Percent missing (NA)"}, inplace=True)
+    missing_values_df.rename(columns={"Percent of nulls in sample": "Percent missing"}, inplace=True)
 
     column_names = missing_values_df.index
     missing_values_df.insert(0, 'Columns', column_names)
@@ -105,7 +105,7 @@ def missing_values(dataset):
                                                                                            'Potential total missingness percentage in column'])]
     missing_values_df['Potential total missingness percentage in column'] = missing_values_df['Potential total missingness percentage in column'].round(2)
     total_potential_missingness_sum = missing_values_df['Potential total missingness percentage in column'].sum()
-    missing_values_df['Percent missing (NA)'] = round(missing_values_df['Percent missing (NA)']*100, 2)
+    missing_values_df['Percent missing'] = round(missing_values_df['Percent missing']*100, 2)
     missing_values_df = dash_datatable_format_fix(missing_values_df)
     if total_potential_missingness_sum == 0:
         missing_values_df = pd.DataFrame({"Check notification": ["Check passed: No missing values encountered"]})

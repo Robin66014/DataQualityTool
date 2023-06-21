@@ -264,7 +264,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
         check_results['df_feature_feature_correlation'] = df_feature_feature_correlation
         df_feature_feature_correlation.to_csv('datasets/dataframes_label/df_feature_feature_correlation.csv')
-        df_outliers, amount_of_outliers, threshold = outliers_and_correlations.outlier_detection(ds)
+        df_outliers, amount_of_outliers, threshold, outlier_prob_scores = outliers_and_correlations.outlier_detection(ds)
         check_results['df_outliers'] = df_outliers
         df_outliers.to_csv('datasets/dataframes_label/df_outliers.csv')
 
@@ -276,11 +276,9 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target, dtypes_dict)
 
         #plots
-        # distribution_figures = plot_and_transform_functions.plot_dataset_distributions(df, dtypes_dict) #list of all column data distribution figures
-        # data_distribution_figures_div = html.Div([dcc.Graph(id='multi_' + str(i), figure=distribution_figures[i], style={'display': 'inline-block', 'width': '30vh', 'height': '30vh'}) for i in range(len(distribution_figures))])
-        #missingno_plot = plot_and_transform_functions.missingno_plot(df)
         label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
-        pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target)
+        #print(label_encoded_df)
+        pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target, outlier_prob_scores)
         box_plot = outliers_and_correlations.box_plot(df, dtypes_dict)
 
         if task_type == 'classification': #target column supplied
@@ -811,4 +809,4 @@ def dq_checks_overview(check_results, DQ_label):
     )
 
 if __name__ == '__main__':
-    app.run_server(host='127.0.0.1', port='8050', debug=False)
+    app.run_server(host='127.0.0.1', port='8050', debug=True)

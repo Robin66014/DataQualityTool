@@ -69,6 +69,8 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
         result = resultOutlier.display[1] #obtain dataframe with probability scores
         row_numbers = result.index
         result.insert(0, 'Row number', row_numbers)
+        result.sort_values('Row number', inplace=True)
+        outlier_prob_scores = result['Outlier Probability Score']
         max_prob_score = result['Outlier Probability Score'].max()
 
         #TODO: filteren van dataframe loskoppelen van functie, anders moet het steeds herberekend worden als de callback aan deze functie wordt gekoppeld
@@ -81,10 +83,10 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
             amount_of_outliers = result_filtered.shape[0]
         result_filtered = dash_datatable_format_fix(result_filtered)
 
-        return result_filtered, amount_of_outliers, threshold
+        return result_filtered, amount_of_outliers, threshold, outlier_prob_scores
 
     except Exception as e:
-        return pd.DataFrame({"Check notification": ["COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME OF 20 MINUTES EXCEEDED. Note: if your dataset is very small, this could also be the cause of the check not running."]}), 0, threshold
+        return pd.DataFrame({"Check notification": ["COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME OF 20 MINUTES EXCEEDED. Note: if your dataset is very small, this could also be the cause of the check not running."]}), 0, threshold, pd.DataFrame()
 
 def box_plot(df, dtypes):
 
