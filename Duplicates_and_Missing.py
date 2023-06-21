@@ -35,16 +35,22 @@ def missing_values(dataset):
         #zeros
         zeros_percentage = (dataset[col] == 0).mean() * 100
         zeros_percentage = round(zeros_percentage, 2)
+        if zeros_count != 0:
+            zeros_count = "{} ({:.3f}%)".format(zeros_count, zeros_percentage)
         zeros.append(zeros_count)
         zeros_percentage_list.append(zeros_percentage)
         #question marks
         question_marks_percentage = (dataset[col] == '?').mean() * 100
         question_marks_percentage = round(question_marks_percentage, 2)
+        if question_marks_count != 0:
+            question_marks_count = "{} ({:.3f}%)".format(question_marks_count, question_marks_percentage)
         question_marks.append(question_marks_count)
         question_marks_percentage_list.append(question_marks_percentage)
         #dashes
         dashes_percentage = (dataset[col] == '-').mean() * 100
         dashes_percentage = round(dashes_percentage, 2)
+        if dashes_count != 0:
+            dashes_count = "{} ({:.3f}%)".format(dashes_count, dashes_percentage)
         dashes.append(dashes_count)
         dashes_percentage_list.append(dashes_percentage)
     # create a new dataframe from the zeros_dict
@@ -97,8 +103,9 @@ def missing_values(dataset):
     missing_values_df['Potential total missingness percentage in column'] = [x + dashes_percentage_list[i] for i, x in
                                                                              enumerate(missing_values_df[
                                                                                            'Potential total missingness percentage in column'])]
+    missing_values_df['Potential total missingness percentage in column'] = missing_values_df['Potential total missingness percentage in column'].round(2)
     total_potential_missingness_sum = missing_values_df['Potential total missingness percentage in column'].sum()
-    missing_values_df['Percent missing (NA)'] = round(missing_values_df['Percent missing (NA)']*100, 3)
+    missing_values_df['Percent missing (NA)'] = round(missing_values_df['Percent missing (NA)']*100, 2)
     missing_values_df = dash_datatable_format_fix(missing_values_df)
     if total_potential_missingness_sum == 0:
         missing_values_df = pd.DataFrame({"Check notification": ["Check passed: No missing values encountered"]})

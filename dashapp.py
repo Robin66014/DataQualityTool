@@ -803,7 +803,7 @@ def dq_checks_overview(check_results, DQ_label):
              dbc.Col(dbc.Progress(value=check_results["class_imbalance"],
                                   label=f"{check_results['class_imbalance']}%",
                                   color=f"{check_results['class_imbalance_color']}", className="mb-3")),
-             dbc.Col(html.H6("Class imbalance check (gives a warning when the ratio of the rarest and the most common classe is high)"))]),
+             dbc.Col(html.H6("Class imbalance check (gives a warning when the ratio of the rarest and the most common class is high (ratio <0.1))"))]),
 
             html.Div(dbc.Button(f'DQ label: {DQ_label}', color=DQ_button_color, className="mr-3"), style={"display": "flex", "justify-content": "center", "align-items": "center", "height": "100%"}),
             html.Hr()
@@ -811,4 +811,4 @@ def dq_checks_overview(check_results, DQ_label):
     )
 
 if __name__ == '__main__':
-    app.run_server(host='127.0.0.1', port='8050', debug=True)
+    app.run_server(host='127.0.0.1', port='8050', debug=False)

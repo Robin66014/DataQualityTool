@@ -249,17 +249,29 @@ def baseline_model_performance(dataset, target, dtypes):
         else: #we use accuracy for model evaluation
             model.fit(X_train, y_train)
             y_pred = model.predict(X_test)
-            acc = accuracy_score(y_test, y_pred)
+            acc = round(accuracy_score(y_test, y_pred), 2)
             model_names.append(name)
             accuracies.append(acc)
 
     if problem_type == 'regression':
-        fig = px.bar(x=model_names, y=MSEs, text=MSEs, labels={'x': 'Model', 'y': 'Mean Squared Error'})
+        fig = px.bar(x=MSEs, y=model_names, text=MSEs, labels={'x': 'Mean Squared Error', 'y': 'Model'},
+                     color=model_names)
     else:
-        fig = px.bar(x=model_names, y=accuracies, text=accuracies, labels={'x': 'Model', 'y': 'Accuracy'})
-    #put values on top of barchart
+        fig = px.bar(x=accuracies, y=model_names, text=accuracies, labels={'x': 'Accuracy', 'y': 'Model'},
+                     color=model_names)
+
+    # Put values on the right side of the horizontal bars
     fig.update_traces(textposition='outside')
+
     return fig
+
+    # if problem_type == 'regression':
+    #     fig = px.bar(x=model_names, y=MSEs, text=MSEs, labels={'x': 'Model', 'y': 'Mean Squared Error'})
+    # else:
+    #     fig = px.bar(x=model_names, y=accuracies, text=accuracies, labels={'x': 'Model', 'y': 'Accuracy'})
+    # #put values on top of barchart
+    # fig.update_traces(textposition='outside')
+    # return fig
 
 # def box_plot(df, dtypes):
 #     numerical_columns = []
