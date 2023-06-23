@@ -149,7 +149,7 @@ def parse_contents(contents, filename, date):
     except Exception as e:
         print(e)
         return html.Div([
-            'There was an error processing this file.',
+            'There was an error processing this file. Make sure to upload one of the following file types (.csv, .xls, .xlsx, .arff, .parquet)',
             html.Br(),
             dbc.Button('DQ label: E', color='danger')
         ], className="d-grid gap-2 col-6 mx-auto")
@@ -490,9 +490,6 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         html.Div(dcc.Loading(children=html.Div(id='bias_and_feature_information_accordion'), type='circle')),
         dq_checks_overview(calculated_scores, DQ_label),
 
-        #TODO: hier progress bars & data quality label
-        #progress_bars(),
-
         html.Hr(),  # horizontal line
         html.H3('Additional checks', style={'textAlign': 'center'}),
         html.P('Press the "Run additional checks" button to detect potential label errors using Cleanlab'
@@ -809,4 +806,4 @@ def dq_checks_overview(check_results, DQ_label):
     )
 
 if __name__ == '__main__':
-    app.run_server(host='127.0.0.1', port='8050', debug=True)
+    app.run_server(host='127.0.0.1', port='8050', debug=False)

@@ -114,7 +114,7 @@ def calculate_dataset_nutrition_label(df, check_results):
                 calculated_scores['string_mismatch_color'] = check_failed
                 penalty_points += moderate
 
-        elif check_res == 'df_outliers': #MODERATE ISSUE
+        elif check_res == 'df_outliers': #MINOR ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
                 calculated_scores['outliers'] =  100
                 outliers_df = []
