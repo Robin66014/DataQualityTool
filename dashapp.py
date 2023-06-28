@@ -272,14 +272,14 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         pandas_dq_report = plot_and_transform_functions.pandas_dq_report(df, target)
 
         #the encoded dataframe
-        df = plot_and_transform_functions.clean_dataset(df)
+        df_cleaned = plot_and_transform_functions.clean_dataset(df)
         #encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target, dtypes_dict)
 
         #plots
-        label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df, dtypes_dict)
+        label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df_cleaned, dtypes_dict)
         #print(label_encoded_df)
         pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target, outlier_prob_scores)
-        box_plot = outliers_and_correlations.box_plot(df, dtypes_dict)
+        box_plot = outliers_and_correlations.box_plot(df_cleaned, dtypes_dict)
 
         if task_type == 'classification': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
@@ -806,4 +806,4 @@ def dq_checks_overview(check_results, DQ_label):
     )
 
 if __name__ == '__main__':
-    app.run_server(host='127.0.0.1', port='8050', debug=False)
+    app.run_server(host='127.0.0.1', port='8050', debug=True)
