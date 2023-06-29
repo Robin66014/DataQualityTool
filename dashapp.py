@@ -260,7 +260,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         check_results['df_outliers'] = df_outliers
 
         #pandas dq report #TODO: vervangen voor eigen completere rapport
-        pandas_dq_report_adjusted = plot_and_transform_functions.pandas_dq_report(df, dtypes_dict, df_mixed_data_types, target)
+        pandas_dq_report_adjusted = plot_and_transform_functions.pandas_dq_report(df, dtypes_dict, df_mixed_data_types, df_special_characters, df_string_mismatch, target)
         #pandas_dq_report2 = plot_and_transform_functions.pandas_dq_report2(df, target)
 
         #the encoded dataframe

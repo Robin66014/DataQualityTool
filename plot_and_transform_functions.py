@@ -19,7 +19,7 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from category_encoders.target_encoder import TargetEncoder
 from sklearn.model_selection import train_test_split
 from pandas_dq_adjusted import dq_report_adjusted
-def pandas_dq_report(dataset, dtypes, mixed_data_types_df, target):
+def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, target):
 
     if target != 'None':
         #label encode target if categorical
@@ -29,9 +29,9 @@ def pandas_dq_report(dataset, dtypes, mixed_data_types_df, target):
         dataset[target] = le.transform(dataset[target])
         #create dq report
         #report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
-        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, target=target)
+        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, target=target)
     else:
-        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, target=None)
+        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, target=None)
     #Convert to dict
     reportDICT = report.to_dict()
     #fix string issue (dtype) in pandas_dq conversion to a dictionary
