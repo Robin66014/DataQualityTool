@@ -30,7 +30,7 @@ import logging
 deepchecks.set_verbosity(logging.ERROR)
 os.environ['DISABLE_LATEST_VERSION_CHECK'] = 'True'
 
-#df = pd.read_csv('datasets\Iris.csv')
+
 #sortingHatInf_datatypes = ['not-generalizable', 'floating', 'integer', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
 sortingHatInf_datatypes = ['not-generalizable', 'categorical', 'boolean', 'datetime', 'sentence', 'url', 'embedded-number', 'list', 'context-specific', 'numeric']
 
@@ -237,39 +237,31 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #duplicates & missing
         df_missing_values = Duplicates_and_Missing.missing_values(df)
         check_results['df_missing_values'] = df_missing_values
-        df_missing_values.to_csv('datasets/dataframes_label/df_missing_values.csv')
         #missingno_plot_src = Duplicates_and_Missing.missingno_plot(df)
         df_duplicates = Duplicates_and_Missing.duplicates(df, dtypes_dict)     #TODO: duplicates check testen
         check_results['df_duplicates'] = df_duplicates
-        df_duplicates.to_csv('datasets/dataframes_label/df_duplicates.csv')
         df_duplicate_columns = Duplicates_and_Missing.duplicate_column(df)
         check_results['df_duplicate_columns'] = df_duplicate_columns
-        df_duplicate_columns.to_csv('datasets/dataframes_label/df_duplicate_columns.csv')
 
         #type integrity checks
         df_amount_of_diff_values = Type_integrity.amount_of_diff_values(df)
         check_results['df_amount_of_diff_values'] = df_amount_of_diff_values
-        df_amount_of_diff_values.to_csv('datasets/dataframes_label/df_amount_of_diff_values.csv')
         df_mixed_data_types = Type_integrity.mixed_data_types(df)
         check_results['df_mixed_data_types'] = df_mixed_data_types
-        df_mixed_data_types.to_csv('datasets/dataframes_label/df_mixed_data_types.csv')
         df_special_characters = Type_integrity.special_characters(df)
         check_results['df_special_characters'] = df_special_characters
-        df_special_characters.to_csv('datasets/dataframes_label/df_special_characters.csv')
         df_string_mismatch = Type_integrity.string_mismatch(df)
         check_results['df_string_mismatch'] = df_string_mismatch
-        df_string_mismatch.to_csv('datasets/dataframes_label/df_string_mismatch.csv')
 
         #outliers & correlations
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
         check_results['df_feature_feature_correlation'] = df_feature_feature_correlation
-        df_feature_feature_correlation.to_csv('datasets/dataframes_label/df_feature_feature_correlation.csv')
         df_outliers, amount_of_outliers, threshold, outlier_prob_scores = outliers_and_correlations.outlier_detection(ds)
         check_results['df_outliers'] = df_outliers
-        df_outliers.to_csv('datasets/dataframes_label/df_outliers.csv')
 
         #pandas dq report #TODO: vervangen voor eigen completere rapport
-        pandas_dq_report = plot_and_transform_functions.pandas_dq_report(df, target)
+        pandas_dq_report_adjusted = plot_and_transform_functions.pandas_dq_report(df, dtypes_dict, df_mixed_data_types, target)
+        #pandas_dq_report2 = plot_and_transform_functions.pandas_dq_report2(df, target)
 
         #the encoded dataframe
         df_cleaned = plot_and_transform_functions.clean_dataset(df)
@@ -283,12 +275,9 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
 
         if task_type == 'classification': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
-            df_feature_label_correlation.to_csv('datasets/dataframes_label/df_feature_label_correlation.csv')
             #label purity checks
             df_class_imbalance, fig_class_imbalance = label_purity.class_imbalance(ds)
-            df_class_imbalance.to_csv('datasets/dataframes_label/df_class_imbalance.csv')
             df_conflicting_labels, percent_conflicting = label_purity.conflicting_labels(ds)
-            df_conflicting_labels.to_csv('datasets/dataframes_label/df_conflicting_labels.csv')
         else: #no target column selected or not a classification problem, thus not applicable
             df_feature_label_correlation = pd.DataFrame({
                 "Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
@@ -315,9 +304,12 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
             # TODO: TQDM loader
             # TODO: warning reports + general profiling section (o.b.v. data readiness report?)
 
-            dbc.Table.from_dataframe(pandas_dq_report, striped=False, bordered=True, hover=True, style={
+            dbc.Table.from_dataframe(pandas_dq_report_adjusted, striped=False, bordered=True, hover=True, style={
                 'overflowX': 'scroll'
             }),
+            # dbc.Table.from_dataframe(pandas_dq_report2, striped=False, bordered=True, hover=True, style={
+            #     'overflowX': 'scroll'
+            # }),
             html.Hr(),
             html.H3('Data quality checks', style={'textAlign': 'center'}),
             html.P('This section contains a detailed analysis of possible data quality issues in your dataset', style={'textAlign': 'center'}),

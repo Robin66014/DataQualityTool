@@ -18,11 +18,8 @@ from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from category_encoders.target_encoder import TargetEncoder
 from sklearn.model_selection import train_test_split
-
-def pandas_dq_report(dataset, target):
-
-
-    #TODO fixen voor regression
+from pandas_dq_adjusted import dq_report_adjusted
+def pandas_dq_report(dataset, dtypes, mixed_data_types_df, target):
 
     if target != 'None':
         #label encode target if categorical
@@ -31,9 +28,10 @@ def pandas_dq_report(dataset, target):
         #transform target column using the fitted encoder
         dataset[target] = le.transform(dataset[target])
         #create dq report
-        report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
+        #report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
+        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, target=target)
     else:
-        report = pandas_dq.dq_report(dataset, target=None, csv_engine="pandas", verbose=1)
+        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, target=None)
     #Convert to dict
     reportDICT = report.to_dict()
     #fix string issue (dtype) in pandas_dq conversion to a dictionary
@@ -47,6 +45,31 @@ def pandas_dq_report(dataset, target):
 
     return reportDF
 
+# def pandas_dq_report2(dataset, target):
+#
+#     if target != 'None':
+#         #label encode target if categorical
+#         le = LabelEncoder()
+#         le.fit(dataset[target])
+#         #transform target column using the fitted encoder
+#         dataset[target] = le.transform(dataset[target])
+#         #create dq report
+#         #report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
+#         report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
+#     else:
+#         report = pandas_dq.dq_report(dataset, target=None, csv_engine="pandas", verbose=1)
+#     #Convert to dict
+#     reportDICT = report.to_dict()
+#     #fix string issue (dtype) in pandas_dq conversion to a dictionary
+#     reportDICT = {k: {k2: str(v2).replace("dtype(", "dtype") for k2, v2 in v.items()} for k, v in reportDICT.items()}
+#
+#     #make df and append list of column names to beginning of df
+#     reportDF = pd.DataFrame(reportDICT)
+#     reportDF.insert(0, 'Column', list(dataset.columns))
+#     #TODO: aanpassingen maken aan het report zoals: outliers zijn anders, fairness checks toevoegen
+#     #TODO: additional remarks; total outliers based on all column values, fairness warnings, few instances compared to amount of columns
+#
+#     return reportDF
 
 def extend_dq_report():
     #TODO: functie voor aanvullen dq report met rest van checks + general warnings (niet kolom specifieke waarschuwingen)
