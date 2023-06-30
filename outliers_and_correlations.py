@@ -79,14 +79,16 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
         amount_of_outliers = 0
         if result_filtered.empty:
             result_filtered = pd.DataFrame({"Check notification": ["Check passed: No outliers with a probability score higher than {}, The highest probability found is: {}".format(threshold, max_prob_score)]})
+            dq_issue_report_string = ' '
         else:
             amount_of_outliers = result_filtered.shape[0]
+            dq_issue_report_string = f'{amount_of_outliers} outlier instances encountered, check their legitimacy and or remove them.'
         result_filtered = dash_datatable_format_fix(result_filtered)
 
-        return result_filtered, amount_of_outliers, threshold, outlier_prob_scores
+        return result_filtered, amount_of_outliers, threshold, outlier_prob_scores, dq_issue_report_string
 
     except Exception as e:
-        return pd.DataFrame({"Check notification": ["COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME OF 20 MINUTES EXCEEDED. Note: if your dataset is very small, this could also be the cause of the check not running."]}), 0, threshold, pd.DataFrame()
+        return pd.DataFrame({"Check notification": ["COMPUTATION TOO EXPENSIVE ERROR: MAXIMUM COMPUTATION TIME OF 20 MINUTES EXCEEDED. Note: if your dataset is very small, this could also be the cause of the check not running."]}), 0, threshold, pd.DataFrame(), ' '
 
 def box_plot(df, dtypes):
 

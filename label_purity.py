@@ -31,7 +31,17 @@ def class_imbalance(dataset):
     # fig = px.bar(resultDF) #plotly image for in Dash application
     # fig.show()
     resultDF = dash_datatable_format_fix(resultDF)
-    return resultDF, fig
+
+    max_value = float(resultDF.max().max())
+    min_value = float(resultDF.min().min())
+    ratio_min_max = min_value / max_value
+    ratio_min_max = round((min_value / max_value), 2)
+    if ratio_min_max <= 0.01:
+        dq_issue_report_string = f'Highly imbalanced classes with ratio {ratio_min_max}, check whether this forms a problem in your context' \
+                                 f' and/or fix by resampling, cost-sensitive learning or ensemble methods.'
+    else:
+        dq_issue_report_string = ' '
+    return resultDF, fig, dq_issue_report_string
 
 
 def conflicting_labels(dataset):
@@ -46,16 +56,21 @@ def conflicting_labels(dataset):
     percentage = round(result.get('percent'), 6)*100
     if len(result['samples_indices']) == 0:
         resultDF = pd.DataFrame({"Check notification": ["Check passed: No conflicting labels encountered"]})
+        dq_issue_report_string = ' '
     else:
         resultDF = resultConflictingLabels.display[1]
         resultDF.reset_index(inplace=True)
         columns = resultDF.columns.tolist()
         columns[2] = 'Feature values'
         resultDF.columns = columns
+        new_df = pd.DataFrame()
+        new_df['Conflicting'] = resultDF['Instances'].str.count(',') + 1
+        total_conflicting = int(new_df['Conflicting'].sum())
+        dq_issue_report_string = f'{total_conflicting} conflicting labels encountered, check their legimitacy and/or remove them.'
 
     resultDF = dash_datatable_format_fix(resultDF)
 
-    return resultDF, percentage
+    return resultDF, percentage, dq_issue_report_string
 
 
 def cleanlab_label_error(encoded_dataset, target):

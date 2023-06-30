@@ -228,6 +228,13 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
             else:
                 task_type = 'regression'
 
+
+        result_strings = []
+
+
+
+
+
         df = fetch_data(filepath) #deserialize JSON string stored in web browser
         ds = createDatasetObject(df, dtypes_dict, target)
         #TODO: convert to Deepchecks datasets, keep in mind length error
@@ -238,9 +245,11 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         df_missing_values = Duplicates_and_Missing.missing_values(df)
         check_results['df_missing_values'] = df_missing_values
         #missingno_plot_src = Duplicates_and_Missing.missingno_plot(df)
-        df_duplicates = Duplicates_and_Missing.duplicates(df, dtypes_dict)     #TODO: duplicates check testen
+        df_duplicates, duplicates_result_string = Duplicates_and_Missing.duplicates(df, dtypes_dict)
+        result_strings.append(duplicates_result_string)
         check_results['df_duplicates'] = df_duplicates
-        df_duplicate_columns = Duplicates_and_Missing.duplicate_column(df)
+        df_duplicate_columns, duplicate_columns_result_string = Duplicates_and_Missing.duplicate_column(df)
+        result_strings.append(duplicate_columns_result_string)
         check_results['df_duplicate_columns'] = df_duplicate_columns
 
         #type integrity checks
@@ -256,7 +265,8 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         #outliers & correlations
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
         check_results['df_feature_feature_correlation'] = df_feature_feature_correlation
-        df_outliers, amount_of_outliers, threshold, outlier_prob_scores = outliers_and_correlations.outlier_detection(ds)
+        df_outliers, amount_of_outliers, threshold, outlier_prob_scores, outlier_result_string = outliers_and_correlations.outlier_detection(ds)
+        result_strings.append(outlier_result_string)
         check_results['df_outliers'] = df_outliers
 
         #pandas dq report #TODO: vervangen voor eigen completere rapport
@@ -276,8 +286,10 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         if task_type == 'classification': #target column supplied
             df_feature_label_correlation = outliers_and_correlations.feature_label_correlation(ds)
             #label purity checks
-            df_class_imbalance, fig_class_imbalance = label_purity.class_imbalance(ds)
-            df_conflicting_labels, percent_conflicting = label_purity.conflicting_labels(ds)
+            df_class_imbalance, fig_class_imbalance, class_imbalance_result_string = label_purity.class_imbalance(ds)
+            result_strings.append(class_imbalance_result_string)
+            df_conflicting_labels, percent_conflicting, conflicting_labels_result_string = label_purity.conflicting_labels(ds)
+            result_strings.append(conflicting_labels_result_string)
         else: #no target column selected or not a classification problem, thus not applicable
             df_feature_label_correlation = pd.DataFrame({
                 "Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
@@ -297,6 +309,11 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         Type_integrity_score = round((calculated_scores['amount_of_diff_values'] + calculated_scores['mixed_data_types'] + calculated_scores['string_mismatch'] + calculated_scores['special_characters'])/4,2)
         outliers_and_correlations_score = round((calculated_scores['feature_correlations'] + calculated_scores['outliers'])/2,2)
         label_purity_score = round(calculated_scores['conflicting_labels'],2)
+
+        non_empty_strings = [s for s in result_strings if s.strip()] # Filter out the empty strings
+        result_string = '  \n'.join(non_empty_strings)
+        result_string = result_string.upper()
+
         return html.Div([  # Data issue / check results section
             html.H3('Profiling report and issue overview', style={'textAlign': 'center'}),
             html.P('This section contains a profling report showing important information'
@@ -311,6 +328,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
             #     'overflowX': 'scroll'
             # }),
             html.Hr(),
+            dcc.Markdown(result_string),
             html.H3('Data quality checks', style={'textAlign': 'center'}),
             html.P('This section contains a detailed analysis of possible data quality issues in your dataset', style={'textAlign': 'center'}),
             dbc.Accordion(children=[

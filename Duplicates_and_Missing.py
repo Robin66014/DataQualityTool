@@ -124,10 +124,15 @@ def duplicates(df, dtypes):
 
     if duplicate_df.empty:
         duplicate_df = pd.DataFrame({"Check notification": ["Check passed: No duplicate instances encountered"]})
+        dq_issue_report_string = ' '
+    if not 'Check notification' in list(duplicate_df.columns):
+        total_duplicates = int(duplicate_df['amount of duplicates'].sum())
+        dq_issue_report_string = f'{total_duplicates} duplicate instances were encountered, investigate and/or remove them.'
 
     final_df = dash_datatable_format_fix(duplicate_df)
 
-    return final_df
+
+    return final_df, dq_issue_report_string
 
 
 
@@ -146,9 +151,10 @@ def duplicate_column(df):
     if duplicate_cols:
         df_duplicate_columns = pd.DataFrame(result)
         df_duplicate_columns = dash_datatable_format_fix(df_duplicate_columns)
-        return df_duplicate_columns
+        duplicate_cols = len(pd.unique(df_duplicate_columns['Column']))
+        return df_duplicate_columns, f'{duplicate_cols} duplicate columns were encountered, remove the redundant columns.'
     else:
-        return pd.DataFrame({"Check notification": ["Check passed: No duplicate columns encountered"]})
+        return pd.DataFrame({"Check notification": ["Check passed: No duplicate columns encountered"]}), ' '
 
 # def missingno_plot(df):
 #     fig = msno.matrix(df)
