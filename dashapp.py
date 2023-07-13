@@ -185,21 +185,24 @@ def parse_contents(contents, filename, date):
 
         #Dataset overview section
         html.H3('Dataset overview', style={'textAlign': 'center'}),
-        html.P('Click the dataset to edit a cell, press the EXPORT button to download the edited dataset',
+        html.P('Click the dataset to edit a cell, filter using >, >=, <, and <=, or search text (case-sensitive) and press the EXPORT button to download the edited dataset.',
                style={'textAlign': 'center'}),
-
         dash_table.DataTable(
-            df.to_dict('records'),
-            [{'name': i, 'id': i} for i in df.columns],
+            data = df.to_dict('records'),
+            columns = [{'name': i, 'id': i, 'deletable' : True} for i in df.columns],
             page_size = 10,
             editable=True,
             export_format='csv',
+            row_deletable=True,
+            filter_action='native',
+
             style_table={
                 'overflowX': 'scroll'
             }
         ),
         #dcc.Store(id='stored-data', data = df.to_dict('records'), storage_type='memory'), #TODO: aanpassen pickle oid?
         html.Hr(),  # horizontal line
+        html.Div(id='cleaning-assistant-container'),
     ]), fluid = True, class_name="dbc")
 @app.callback(
     Output('target-selected-container', 'children'),
@@ -213,12 +216,14 @@ def display_selected_target_column(value):#, n, target):
 
 @app.callback(
     Output('container-checks-button-pressed', 'children'),
+    # Output('cleaning-assistant-container', 'children'),
     [Input('run-checks-button', 'n_clicks'),
      State('stored-filepath', 'data'),
      State('dtypes_dropdown', 'data'),
      State('targetColumn', 'value')]
 )
 def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
+
     if n_clicks >= 1: #run checks button clicked
         dtypes_dict = dtypes[0]
         task_type = 'other'
@@ -230,9 +235,6 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
 
 
         result_strings = []
-
-
-
 
 
         df = fetch_data(filepath) #deserialize JSON string stored in web browser
@@ -313,6 +315,7 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         non_empty_strings = [s for s in result_strings if s.strip()] # Filter out the empty strings
         result_string = '  \n'.join(non_empty_strings)
         result_string = result_string.upper()
+
 
         return html.Div([  # Data issue / check results section
             html.H3('Profiling report and issue overview', style={'textAlign': 'center'}),
