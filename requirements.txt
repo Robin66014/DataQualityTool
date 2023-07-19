@@ -3,16 +3,15 @@ dash-core-components==2.0.0
 dash-html-components==2.0.0
 dash-table==5.0.0
 dash-mantine-components==0.12.0
-pandas==1.5.2
 scikit-learn==1.2.2
 sortinghatinf==0.0.7
 cleanlab==2.3.1
 arff==0.9
 xgboost==1.7.5
-missingno==0.5.2
 pandas_dq==1.28
 dash_bootstrap_components==1.4.1
 deepchecks==0.11.1
 plotly==5.15.0
 nltk==3.8.1
 openpyxl==3.1.2
+pandas==1.5.2
