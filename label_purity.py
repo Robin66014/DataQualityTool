@@ -1,12 +1,7 @@
-import pandas
-from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
-from sklearn.datasets import load_iris
-from deepchecks.tabular.datasets.classification.phishing import load_data
 import numpy as np
-from deepchecks.tabular.datasets.classification import adult
 import plotly.express as px
 import cleanlab
 from xgboost import XGBClassifier
@@ -19,28 +14,28 @@ amount_of_samples = 10000000
 
 
 def class_imbalance(dataset):
-    """"Function that checks the distribution of the target variable / label"""
-
-    #TODO: rekening houden dat deze test irrelevant is voor regression of labelless problems
+    """"Check 5: Function that checks the distribution of the target variable / label and reports if imbalance is extremely high"""
+    #deepchecks imbalance check
     checkClassImbalance = deepchecks.tabular.checks.ClassImbalance(n_top_labels=amount_of_columns)
     resultClassImbalance = checkClassImbalance.run(dataset)
 
     result = resultClassImbalance.value #pandas dataframe with correlation values
     fig = px.bar(x=list(result.keys()), y=list(result.values()), text=list(result.values()))
     resultDF = pd.DataFrame(result, index=[0])
-    # fig = px.bar(resultDF) #plotly image for in Dash application
-    # fig.show()
+    #convert to desired dash format
     resultDF = dash_datatable_format_fix(resultDF)
-
+    #convert deepchecks result to float
     max_value = float(resultDF.max().max())
     min_value = float(resultDF.min().min())
     ratio_min_max = min_value / max_value
     ratio_min_max = round((min_value / max_value), 2)
+    #if ratio is less than 1 to 100 between most infrequent and most frequent class, report this as a potential problem
     if ratio_min_max <= 0.01:
         dq_issue_report_string = f'Highly imbalanced classes with ratio {ratio_min_max}, check whether this forms a problem in your context' \
                                  f' and/or fix by resampling, cost-sensitive learning or ensemble methods.'
     else:
         dq_issue_report_string = ' '
+
     return resultDF, fig, dq_issue_report_string
 
 

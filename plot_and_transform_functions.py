@@ -1,25 +1,15 @@
 import pandas as pd
 import plotly.express as px
-from scipy.stats import shapiro, anderson, kstest, normaltest
-import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from sklearn.svm import SVC, SVR
 from sklearn.metrics import accuracy_score, mean_squared_error
 from pandas.api.types import is_numeric_dtype
-from scipy.stats import shapiro, anderson, kstest, normaltest
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
-import missingno as msno
-from sklearn.preprocessing import LabelEncoder
-import pandas_dq
-from xgboost import XGBClassifier
-from sklearn.model_selection import cross_val_predict
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from category_encoders.target_encoder import TargetEncoder
 from sklearn.model_selection import train_test_split
 from pandas_dq_adjusted import dq_report_adjusted
-def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, target):
+def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, df_feature_feature_correlation, target):
 
     if target != 'None':
         #label encode target if categorical
@@ -29,9 +19,9 @@ def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df
         dataset[target] = le.transform(dataset[target])
         #create dq report
         #report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
-        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, target=target)
+        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, df_feature_feature_correlation, target=target)
     else:
-        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, target=None)
+        report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, df_feature_feature_correlation, target=None)
     #Convert to dict
     reportDICT = report.to_dict()
     #fix string issue (dtype) in pandas_dq conversion to a dictionary
@@ -44,38 +34,6 @@ def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df
     #TODO: additional remarks; total outliers based on all column values, fairness warnings, few instances compared to amount of columns
 
     return reportDF
-
-# def pandas_dq_report2(dataset, target):
-#
-#     if target != 'None':
-#         #label encode target if categorical
-#         le = LabelEncoder()
-#         le.fit(dataset[target])
-#         #transform target column using the fitted encoder
-#         dataset[target] = le.transform(dataset[target])
-#         #create dq report
-#         #report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
-#         report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
-#     else:
-#         report = pandas_dq.dq_report(dataset, target=None, csv_engine="pandas", verbose=1)
-#     #Convert to dict
-#     reportDICT = report.to_dict()
-#     #fix string issue (dtype) in pandas_dq conversion to a dictionary
-#     reportDICT = {k: {k2: str(v2).replace("dtype(", "dtype") for k2, v2 in v.items()} for k, v in reportDICT.items()}
-#
-#     #make df and append list of column names to beginning of df
-#     reportDF = pd.DataFrame(reportDICT)
-#     reportDF.insert(0, 'Column', list(dataset.columns))
-#     #TODO: aanpassingen maken aan het report zoals: outliers zijn anders, fairness checks toevoegen
-#     #TODO: additional remarks; total outliers based on all column values, fairness warnings, few instances compared to amount of columns
-#
-#     return reportDF
-
-def extend_dq_report():
-    #TODO: functie voor aanvullen dq report met rest van checks + general warnings (niet kolom specifieke waarschuwingen)
-
-    return None
-
 
 
 
@@ -149,6 +107,7 @@ def label_encode_dataframe(df, dtypes):
     return df, mapping_df
 
 def pcp_plot(encoded_df, target, outlier_prob_scores):
+
     if not outlier_prob_scores.empty:
         pcp_df = pd.concat([encoded_df, outlier_prob_scores], axis=1)
         fig = px.parallel_coordinates(pcp_df, color='Outlier Probability Score')
@@ -159,12 +118,6 @@ def pcp_plot(encoded_df, target, outlier_prob_scores):
             fig = px.parallel_coordinates(encoded_df)
 
     return fig
-
-def missingno_plot(df):
-    #TODO: clean dataset?
-    msno_plot = msno.matrix(df)
-
-    return msno_plot
 
 def plot_feature_importance(df, target, dtypes):
     """"plots randomforest feature importances in a horizontal barchart, based on target encoded feature values"""
@@ -290,24 +243,6 @@ def baseline_model_performance(dataset, target, dtypes):
     fig.update_traces(textposition='outside')
 
     return fig
-
-    # if problem_type == 'regression':
-    #     fig = px.bar(x=model_names, y=MSEs, text=MSEs, labels={'x': 'Model', 'y': 'Mean Squared Error'})
-    # else:
-    #     fig = px.bar(x=model_names, y=accuracies, text=accuracies, labels={'x': 'Model', 'y': 'Accuracy'})
-    # #put values on top of barchart
-    # fig.update_traces(textposition='outside')
-    # return fig
-
-# def box_plot(df, dtypes):
-#     numerical_columns = []
-#     for col in df.columns:
-#         if dtypes[col] == 'floating' or dtypes[col] == 'integer' or dtypes[col] == 'numeric':
-#             numerical_columns.append(col)
-#     print(numerical_columns)
-#
-#     return px.box(df, y=numerical_columns, title="Numerical Column Visualization for identifying column outliers")
-
 
 def clean_dataset(df):
     #same as from helper.py of openML

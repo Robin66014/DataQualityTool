@@ -4,7 +4,7 @@ import copy
 import os
 
 
-def dq_report_adjusted(data, dtypes, mixed_data_types_df, special_characters_df, string_mismatch_df, target=None):
+def dq_report_adjusted(data, dtypes, mixed_data_types_df, special_characters_df, string_mismatch_df, df_feature_feature_correlation, target=None):
     """
     This is a data quality reporting tool that accepts any kind of file format as a filename or as a
     pandas dataframe as input and returns a report highlighting potential data quality issues in it.
@@ -302,7 +302,8 @@ def dq_report_adjusted(data, dtypes, mixed_data_types_df, special_characters_df,
                     dq_df1.loc[bad_col, 'first_comma'] = ', '
                     first_time = False
                 ### check if there are outlier columns and print them ##
-                new_string = f"has {len(outliers_high)} outliers greater than upper bound ({upper_bound:.2f}) and {len(outliers_lower)} lower than lower bound ({lower_bound:.2f}). Cap them or remove them."
+                new_string = f"has {len(outliers_high)} outliers greater than upper bound ({upper_bound:.2f}) and {len(outliers_lower)} lower than lower bound ({lower_bound:.2f}). " \
+                             f"Cap them, or use a scaling technique or evaluation measure that isn't sensitive to outliers."
                 dq_df2.loc[col, new_col] += dq_df2.loc[col, 'first_comma'] + new_string
                 dq_df2.loc[col, 'first_comma'] = ', '
         if len(outlier_cols) < 1:
@@ -330,7 +331,8 @@ def dq_report_adjusted(data, dtypes, mixed_data_types_df, special_characters_df,
 
     # Detect highly correlated features
     correlation_threshold = 0.9  # Define a threshold for high correlation
-    correlation_matrix = df[num_cols].corr().abs()  # Get the absolute correlation matrix of numerical columns
+    correlation_matrix = df_feature_feature_correlation#df[num_cols].corr().abs()  # Get the absolute correlation matrix of numerical columns
+    correlation_matrix = correlation_matrix.astype(float)
     upper_triangle = correlation_matrix.where(
         np.triu(np.ones(correlation_matrix.shape), k=1).astype(bool))  # Get the upper triangle of the matrix
     high_corr_cols = [column for column in upper_triangle.columns if

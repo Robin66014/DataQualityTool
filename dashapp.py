@@ -5,26 +5,19 @@ import plotly.graph_objects as go
 import dash
 from dash import html, dcc, dash_table
 import io
-import datetime
 import base64
 from dash.dependencies import Input, Output, State
-# from flask_caching import Cache
 import uuid
-import time
 import scipy.io.arff as arff
-from sklearn.preprocessing import LabelEncoder
-import dash_mantine_components as dmc
 import calculate_dq_label
 from DataTypeInference import obtain_feature_type_table, createDatasetObject
 import fairness_checks
 import Duplicates_and_Missing
 import Type_integrity
 import outliers_and_correlations
-from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 import label_purity
 import plot_and_transform_functions
-import testingFile
 import os
 import logging
 deepchecks.set_verbosity(logging.ERROR)
@@ -44,18 +37,13 @@ button_style = {'background-color': 'blue',
                     'margin-left': '50px'}
 #app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
-current_directory = os.path.dirname(os.path.realpath('dashapp2.py'))
+current_directory = os.path.dirname(os.path.realpath('dashapp.py'))
 cache_dir = os.path.join(current_directory, 'cached_files')
-# Configure the cache
-# cache = Cache(app.server, config={
-#     'CACHE_TYPE': 'filesystem',
-#     'CACHE_DIR': cache_dir  # Directory where cache files will be stored
-# })
 
-app.title = "Data quality toolkit"
+app.title = "Data Quality Analyzer"
 
 app.layout = dbc.Container(html.Div([
-    html.H1("Data quality toolkit", style={'fontSize':50, 'textAlign':'center'}),
+    html.H1("Data Quality Analyzer", style={'fontSize':50, 'textAlign':'center'}),
     html.Hr(),
     dcc.Upload(
             id='upload-data',
@@ -80,7 +68,7 @@ app.layout = dbc.Container(html.Div([
     # dcc.Upload(
     #     id='upload-data',
     #     children=html.Div([dbc.Button('Upload a file (.csv, .xls, .xlsx, .arff, .parquet)', color='primary', size='lg')], className="d-grid gap-2 col-6 mx-auto")),
-    dcc.Loading(children=html.Div(id='output-data-upload'), type = 'circle', style={'content': "Loadin@@@g..."}),
+    dcc.Loading(children=html.Div(id='output-data-upload'), type = 'circle', style={'content': "Loading..."}),
 
 
     #dcc.Graph(figure=fig)
@@ -272,7 +260,8 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
         check_results['df_outliers'] = df_outliers
 
         #pandas dq report #TODO: vervangen voor eigen completere rapport
-        pandas_dq_report_adjusted = plot_and_transform_functions.pandas_dq_report(df, dtypes_dict, df_mixed_data_types, df_special_characters, df_string_mismatch, target)
+        pandas_dq_report_adjusted = plot_and_transform_functions.pandas_dq_report(df, dtypes_dict, df_mixed_data_types, df_special_characters,
+                                                                                  df_string_mismatch, df_feature_feature_correlation ,target)
         #pandas_dq_report2 = plot_and_transform_functions.pandas_dq_report2(df, target)
 
         #the encoded dataframe
@@ -281,7 +270,6 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
 
         #plots
         label_encoded_df, label_mapping = plot_and_transform_functions.label_encode_dataframe(df_cleaned, dtypes_dict)
-        #print(label_encoded_df)
         pcp_plot = plot_and_transform_functions.pcp_plot(label_encoded_df, target, outlier_prob_scores)
         box_plot = outliers_and_correlations.box_plot(df_cleaned, dtypes_dict)
 
@@ -454,8 +442,8 @@ def run_checks(n_clicks, filepath, dtypes, target):#, n, target):
                                                                   style={'textAlign': 'center'}),
                                                           html.P("computes the correlation between each feature pair;"
                                                                  " Methods to calculate for each feature label pair:"
-                                                                 " numerical-numerical: Pearson’s correlation coefficient"
-                                                                 " numerical-categorical: Correlation ratio"
+                                                                 " numerical-numerical: Pearson’s correlation coefficient;"
+                                                                 " numerical-categorical: Correlation ratio;"
                                                                  " categorical-categorical: Symmetric Theil’s U.",
                                                                  style={'textAlign': 'center'}),
                                                           dcc.Graph(figure=correlationFig),
