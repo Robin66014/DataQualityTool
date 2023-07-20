@@ -2,14 +2,9 @@ import pandas as pd
 import sortinghatinf #algorithm to predict the feature type out og [numeric, categorical, datetime, sentence,
 from deepchecks.tabular import Dataset
 from plot_and_transform_functions import dash_datatable_format_fix
-from deepchecks.tabular.datasets.classification import adult
 
-#data = pd.read_csv('datasets\Iris.csv')
 def obtain_feature_type_table(df):
-    """"Function to predict the feature types
-    INPUT: pandas DataFrame
-    OUTPUT: Pandas DataFrame with feature types at index 0 and nothing else : [column names ]
-                                                                              [feature_types]
+    """"Function to predict the data types of the features in the df
     """
     #print('df.columns:', list(df.columns))
     predicted_feature_types = sortinghatinf.get_sortinghat_types(df)
@@ -20,12 +15,13 @@ def obtain_feature_type_table(df):
 
 
 def createDatasetObject(df, dtypes, target):
+    """"Creates Deepchecks dataset object for more accurate analysis than with dataframes"""
     #obtain catgeorical feature names
     categorical_features = []
     for key, value in dtypes.items():
         if (value == 'categorical' or value == 'boolean') and key != target:
             categorical_features.append(key)
-    #date_name = #todo hoe date_time en ID kolom meenemen in Dataset object? Gewoon weglaten in het begin?
+    #check type of ML task
     if target != 'None':
         if df[target].nunique() == 2: #binary classification
             ds = Dataset(df, label=target, cat_features=categorical_features, label_type='binary')

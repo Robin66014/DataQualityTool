@@ -10,6 +10,8 @@ from category_encoders.target_encoder import TargetEncoder
 from sklearn.model_selection import train_test_split
 from pandas_dq_adjusted import dq_report_adjusted
 def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, df_feature_feature_correlation, target):
+    """"Function to generate an extended version of pandas_dq report by incorporating all of the checks taken
+     into account in calculating the data readiness level"""
 
     if target != 'None':
         #label encode target if categorical
@@ -17,7 +19,6 @@ def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df
         le.fit(dataset[target])
         #transform target column using the fitted encoder
         dataset[target] = le.transform(dataset[target])
-        #create dq report
         #report = pandas_dq.dq_report(dataset, target=target, csv_engine="pandas", verbose=1)
         report = dq_report_adjusted(dataset, dtypes, mixed_data_types_df, special_characters_df, df_string_mismatch, df_feature_feature_correlation, target=target)
     else:
@@ -27,12 +28,9 @@ def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df
     #fix string issue (dtype) in pandas_dq conversion to a dictionary
     reportDICT = {k: {k2: str(v2).replace("dtype(", "dtype") for k2, v2 in v.items()} for k, v in reportDICT.items()}
 
-    #make df and append list of column names to beginning of df
+    #convert to df and append list of column names to beginning of df
     reportDF = pd.DataFrame(reportDICT)
     reportDF.insert(0, 'Column', list(dataset.columns))
-    #TODO: aanpassingen maken aan het report zoals: outliers zijn anders, fairness checks toevoegen
-    #TODO: additional remarks; total outliers based on all column values, fairness warnings, few instances compared to amount of columns
-
     return reportDF
 
 
@@ -41,7 +39,6 @@ def encode_categorical_columns(dataset, target, dtypes):
     """"Function that one-hot-encodes categorical columns and label encodes the target column. It returns the encoded dataset
     and the mapping of the original labels to the encoded labels"""
     #Find all categorical columns
-    #TODO: Regression werkend krijgen (label encoding dan niet van toepassing)
     categorical_cols = [] #dataset.select_dtypes(include=['object', 'category']).columns.tolist()
     for col in dataset.columns:
         if dtypes[col] == 'categorical' or dtypes[col] == 'boolean':
@@ -67,8 +64,7 @@ def encode_categorical_columns(dataset, target, dtypes):
         return dataset, mapping
 
     #if there are categorical columns, we want to one-hot-encode them
-
-    #encode categoricals
+    #encode categorical columns, if more than 100 columns then categories will be combined
     encoder = OneHotEncoder(handle_unknown='ignore', max_categories=100)
     encoded_columns = encoder.fit_transform(dataset[categorical_cols])
     new_columns = pd.DataFrame(encoded_columns.toarray(), columns=encoder.get_feature_names_out(categorical_cols))
@@ -89,7 +85,9 @@ def encode_categorical_columns(dataset, target, dtypes):
     return dataset_encoded, mapping
 
 def label_encode_dataframe(df, dtypes):
+    """"Label encodes dataframe that contain a target feature"""
     label_encoded_dict = {}
+    #place holder message for label encoder mapping
     mapping_df = pd.DataFrame({"Message": ["No label encoding took place"]}) #as a dataframe to prevent future erros with label_mapping/mapping_df.to_dict()
     for column in df.columns:
         if dtypes[column] == 'categorical' or dtypes[column] == 'boolean' and not is_numeric_dtype(df[column]):
@@ -107,11 +105,12 @@ def label_encode_dataframe(df, dtypes):
     return df, mapping_df
 
 def pcp_plot(encoded_df, target, outlier_prob_scores):
-
+    """"Creates a Parallel Coordinates Plot color coded on outlier probability score to inspect and verify outliers"""
+    #if there are probability scores, color code on them
     if not outlier_prob_scores.empty:
         pcp_df = pd.concat([encoded_df, outlier_prob_scores], axis=1)
         fig = px.parallel_coordinates(pcp_df, color='Outlier Probability Score')
-    else:
+    else: #no outlier scores obtained, then just color code on target feature
         if target != 'None':
             fig = px.parallel_coordinates(encoded_df, color=target)
         else:
@@ -120,12 +119,12 @@ def pcp_plot(encoded_df, target, outlier_prob_scores):
     return fig
 
 def plot_feature_importance(df, target, dtypes):
-    """"plots randomforest feature importances in a horizontal barchart, based on target encoded feature values"""
-    te = TargetEncoder()
+    """"check 18: plots Random forest feature importances in a horizontal barchart, based on target encoded feature values"""
+    te = TargetEncoder() #use target encoder as numerical values are required and one-hot-encoding gives results for each individual category
     #split target from data
     x = df.drop(columns=[target])
     y = df[target]
-    #TODO: clean dataset?
+    #for classification problems, label encode the target and use RandomForestClassifier
     if dtypes[target] == 'boolean' or dtypes[target] == 'categorical':
 
         le = LabelEncoder()
@@ -133,7 +132,7 @@ def plot_feature_importance(df, target, dtypes):
         x = te.fit_transform(x, y)
         rf = RandomForestClassifier(n_estimators=10, n_jobs=-1)
         rf.fit(x, y)
-    else:
+    else: #for regression problems, use RandomForestClassifier
         x = te.fit_transform(x, y)
         rf = RandomForestRegressor(n_estimators=10, n_jobs=-1)
         rf.fit(x, y)
@@ -155,9 +154,7 @@ def plot_feature_importance(df, target, dtypes):
 
 
 def plot_dataset_distributions(data, dtypes):
-    """"plots the distributions per column in the dataset"""
-    #TODO: functie klopt not niet helemaal, zie target iris.csv
-
+    """"check 17: plots the distributions per column in the dataset"""
 
     figs = []
 
@@ -187,6 +184,7 @@ def plot_dataset_distributions(data, dtypes):
 
 
 def baseline_model_performance(dataset, target, dtypes):
+    """"check 19: Check the performance of the dataset for three simple sklearn models"""
 
     #check whether this is a regression/classification problem or has no task
     if target != 'None':
@@ -197,7 +195,7 @@ def baseline_model_performance(dataset, target, dtypes):
     else:
         return 'Dataset does not contain a target variable, so model training is not applicable'
 
-    #train models for regression and classification
+    #train models for regression or classification
     models = []
     if problem_type == 'regression':
         models.append(('Linear Regression', LinearRegression(n_jobs=-1)))
@@ -219,7 +217,7 @@ def baseline_model_performance(dataset, target, dtypes):
     accuracies = []
     model_names = []
     for name, model in models:
-        if problem_type == 'regression': #we use MSE for madel evaluation
+        if problem_type == 'regression': #we use MSE for model evaluation
             model.fit(X_train, y_train)
             y_pred = model.predict(X_test)
             mse = mean_squared_error(y_test, y_pred)
@@ -232,6 +230,7 @@ def baseline_model_performance(dataset, target, dtypes):
             model_names.append(name)
             accuracies.append(acc)
 
+    #plot accuracies / MSE
     if problem_type == 'regression':
         fig = px.bar(x=MSEs, y=model_names, text=MSEs, labels={'x': 'Mean Squared Error', 'y': 'Model'},
                      color=model_names)
@@ -245,14 +244,16 @@ def baseline_model_performance(dataset, target, dtypes):
     return fig
 
 def clean_dataset(df):
-    #same as from helper.py of openML
+    """function for basic missing value removal for visualizations"""
+    #same method as in helper.py of openML, remove columns with high missiness percentage
     df = df.loc[:, df.isnull().mean() < 0.8]
+    #fill remaining column missing values with mode
     out = df.fillna(df.mode().iloc[0])
     return out
 
 
 def dash_datatable_format_fix(df):
-
+    """"Function to prevent dash from crashing due to formatting errors"""
     # fix dash datatables issues, as it does not accept dicts
     remove_brackets = lambda x: str(x).replace('[', '').replace(']', '').replace('{', '').replace('}', '')
 
@@ -264,7 +265,7 @@ def dash_datatable_format_fix(df):
 
 def upsample_minority_classes(df, target):
     """Copies instances where target class count is less than 5 and duplicates them until 5 is reached
-     (which is necessary for label error prediction, cross validation splits)."""
+     (which is necessary for label error prediction, 5-fold cross validation splits)."""
     classes = df[target].unique()
     dfs = []
     rare_classes = 0

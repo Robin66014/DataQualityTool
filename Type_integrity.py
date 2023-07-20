@@ -1,11 +1,5 @@
-import pandas
-from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
-import re
-from sklearn.datasets import load_iris
-from deepchecks.tabular.datasets.classification.phishing import load_data
-import numpy as np
 from plot_and_transform_functions import dash_datatable_format_fix
 amount_of_columns = 10000000
 amount_of_samples = 10000000
@@ -13,9 +7,8 @@ amount_of_samples = 10000000
 
 
 def amount_of_diff_values(dataset):
-    #TODO: enigszins slecht, dus lage weging categorie 1/3
-    """"displays the amount of different values per column"""
-    #TODO: currently only displays the amount of distinct values in a column, do something with the case that it is literally unique
+    """"Check 8: single value in column. Displays the amount of different values per column"""
+    #obtain deepchecks check result
     checkSingleValue = deepchecks.tabular.checks.IsSingleValue(n_to_show=amount_of_columns, n_samples=amount_of_samples)
     resultSingleValue = checkSingleValue.run(dataset)
     result_dict = resultSingleValue.value
@@ -23,7 +16,7 @@ def amount_of_diff_values(dataset):
     for key, value in result_dict.items():
         result_dict[key] = [value] #contains the amount of distinct values per column
 
-
+    #add to comprehensive df
     df = pd.DataFrame.from_dict(result_dict, orient = 'columns')
     df = dash_datatable_format_fix(df)
 
@@ -31,8 +24,8 @@ def amount_of_diff_values(dataset):
 
 
 def mixed_data_types(dataset):
-    """"function that discovers the various types of data that exist in a column"""
-    #TODO: nog goed controleren op mogelijke edge cases, mogelijk foutgevoelig (strings)?
+    """"Check 9: mixed data types. Function that discovers the various types of data that exist in a column"""
+    #obtain deepchecks check result
     checkMixedDataTypes = deepchecks.tabular.checks.MixedDataTypes(n_top_columns=amount_of_columns, n_samples=amount_of_samples)
     resultMixedDataTypes = checkMixedDataTypes.run(dataset)
 
@@ -62,9 +55,10 @@ def mixed_data_types(dataset):
     return df
 
 def special_characters(dataset):
-    """"function that checks whether values exist in the column that contain only special characters like #, ?, -, if so displays
+    """"Check 10: Function that checks whether values exist in the column that contain only special characters like #, ?, -, if so displays
      the column with the 5 most common special characters
     """
+    #obtain deepchecks check result
     checkSpecialCharacters = deepchecks.tabular.checks.SpecialCharacters(n_top_columns=amount_of_columns,
                                                                    n_samples=amount_of_samples, n_most_common = 5)
     resultSpecialCharacters = checkSpecialCharacters.run(dataset)
@@ -75,19 +69,20 @@ def special_characters(dataset):
         df.insert(0, 'Column', column_names)
     else:
         df = pd.DataFrame({"Check notification": ["Check passed: No special characters encountered"]})
-    #df = pd.DataFrame({"Message": ["No special characters encountered"]}) #TODO: FOR DEBUGGING
+
     df.reset_index(drop=True, inplace=True)
+    #format fix
     df = dash_datatable_format_fix(df)
 
     return df
 
 
 def string_mismatch(dataset):
-    """"Function that checks the cell entity, e.g 'red' and 'Red' and 'red!' are probably meant to be the same values"""
+    """"Check 11; Function that checks the cell entity, e.g 'red' and 'Red' and 'red!' are probably meant to be the same values"""
+    #obtain deepchecks check result
     checkStringMismatch = deepchecks.tabular.checks.StringMismatch(n_top_columns=amount_of_columns,
                                                                          n_samples=amount_of_samples)
     resultStringMismatch = checkStringMismatch.run(dataset)
-
 
     result = resultStringMismatch.display
     if result:
@@ -95,9 +90,8 @@ def string_mismatch(dataset):
         df = pd.DataFrame(df.to_records()) #flatten hierarchical index in columns
     else:
         df = pd.DataFrame({"Check notification": ["Check passed: No string mismatch/variants of the same string encountered"]})
-
+    #format fix
     df = dash_datatable_format_fix(df)
-
     return df
 
 

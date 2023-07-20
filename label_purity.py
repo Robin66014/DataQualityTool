@@ -40,16 +40,15 @@ def class_imbalance(dataset):
 
 
 def conflicting_labels(dataset):
-    """"Function that checks for datapoints with exactly the same feature values, but different labels"""
-    #TODO: n to show checken
-    # TODO: rekening houden dat deze test irrelevant is voor regression of labelless problems
+    """"Check 6: Conflicting labels. Function that checks for datapoints with exactly the same feature values, but different labels"""
+    #deepchecks result
     checkConflictingLabels = deepchecks.tabular.checks.ConflictingLabels(n_to_show=20)
     resultConflictingLabels = checkConflictingLabels.run(dataset)
 
-    #percentage = round(resultConflictingLabels.value[0], 3) #pandas dataframe with correlation values
     result = resultConflictingLabels.value
     percentage = round(result.get('percent'), 6)*100
     if len(result['samples_indices']) == 0:
+        #df placeholder if check is passed
         resultDF = pd.DataFrame({"Check notification": ["Check passed: No conflicting labels encountered"]})
         dq_issue_report_string = ' '
     else:
@@ -62,14 +61,16 @@ def conflicting_labels(dataset):
         new_df['Conflicting'] = resultDF['Instances'].str.count(',') + 1
         total_conflicting = int(new_df['Conflicting'].sum())
         dq_issue_report_string = f'{total_conflicting} conflicting labels encountered, check their legimitacy and/or remove them.'
-
+    #fix dash format issues
     resultDF = dash_datatable_format_fix(resultDF)
 
     return resultDF, percentage, dq_issue_report_string
 
 
 def cleanlab_label_error(encoded_dataset, target):
-    """"Function that finds potential label errors (due to annotator mistakes), edge cases, and otherwise ambiguous examples"""
+    """"Check 7: Conflicting labels. Function that finds potential label errors (due to annotator mistakes),
+    edge cases, and otherwise ambiguous examples"""
+    #XGB gradient boosting ensemble
     model_XGBC = XGBClassifier(tree_method="hist", enable_categorical=True)  # hist is fastest tree method of XGBoost, use default model
 
     data_no_labels = encoded_dataset.drop(columns=[target])
@@ -78,21 +79,17 @@ def cleanlab_label_error(encoded_dataset, target):
     #create cross validation folds KFold object
     stratified_splits = StratifiedKFold(n_splits=5)
 
-    # Obtain predicted probabilities using 5-fold stratified cross-validation
+    #otain predicted probabilities using 5-fold stratified cross-validation
     pred_probs = cross_val_predict(model_XGBC, data_no_labels, labels, cv=stratified_splits, method='predict_proba')
-
-    #obtain predicted probabilities using 5 fold cross validation
-    #pred_probs = cross_val_predict(model_XGBC, data_no_labels, labels, method='predict_proba')
 
     preds = np.argmax(pred_probs, axis=1)
     accuracy_score_xgbc = round((accuracy_score(preds, labels) * 100), 1)
-    print(f"Accuracy with original data: {accuracy_score_xgbc}%")
 
     #use cleanlabs built in confident learning method to find label issues
     cl = cleanlab.classification.CleanLearning()
     issues_dataframe = cl.find_label_issues(X=None, labels=labels, pred_probs=pred_probs)
     issues_dataframe = issues_dataframe.reset_index()
-
+    #count total wrong labels
     wrong_label_count = (issues_dataframe['is_label_issue'] == True).sum()
 
     #filter df so only errors are visible
@@ -102,20 +99,3 @@ def cleanlab_label_error(encoded_dataset, target):
 
     return issues_dataframe, issues_dataframe_only_errors, wrong_label_count, accuracy_score_xgbc
 
-
-
-#TODO: een functie maken waarin ik de class parity check (prediction accuracy per target group)
-
-from deepchecks.tabular.datasets.classification import adult
-# ds = adult.load_data(as_train_test= False)
-# zero_data = np.zeros(shape=(100,5))
-# df = pd.DataFrame(zero_data)
-# df.iloc[0,4] = 1
-# df.iloc[0,3] = 1
-# df.iloc[0,2] = 1
-# df.iloc[0,1] = 1
-# df.iloc[0,1] = 1
-# ds = Dataset(df, label = 4)
-#
-# res = conflicting_labels(ds)
-# print(res)

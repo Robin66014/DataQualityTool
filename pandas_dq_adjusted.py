@@ -396,7 +396,7 @@ def dq_report_adjusted(data, dtypes, mixed_data_types_df, special_characters_df,
             preds = [x for x in list(df) if x not in [target_col]]
         else:
             preds = [x for x in list(df) if x not in target_col]
-        leakage_threshold = 0.8  # Define a threshold for feature leakage
+        leakage_threshold = 0.9  # Define a threshold for feature leakage
         leakage_matrix = df[preds].corrwith(
             df[target_col]).abs()  # Get the absolute correlation matrix of each column with the target column
         leakage_cols = leakage_matrix[

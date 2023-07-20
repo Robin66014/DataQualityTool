@@ -1,41 +1,32 @@
-from pandas.api.types import is_numeric_dtype
+
 import numpy as np
 import pandas as pd
-def calculate_dataset_nutrition_label(df, check_results):
-    #categories to subdivide in: Critical issues, moderate issues, minor issues
+def calculate_dataset_nutrition_label(df, check_results, settings_dict):
+    """"Function that calculates the data readiness level based on the check results"""
+
     calculated_scores = {}
     rows_df, columns_df = df.shape
-    max_missingness_percentage_allowed = 5#%
-    max_outlier_percentage_allowed = 1
-    feature_correlation_threshold = 0.9
+
     #colour scheme for dbc.Progress bars
     check_failed = 'danger'
     check_warning = 'warning'
     check_passed = 'success'
 
-    #scoring mechanism DQ_label
+    #scoring mechanism DQ_label, categories to subdivide in: Critical issues, moderate issues, minor issues
     penalty_points = 0
     critical = 3
     moderate = 2
     minor = 1
-    #TODO: thresholds gebruiken ipv numerieke waardes
 
+    #for each check result, determine whether the check is passed, if not: penalize
     for check_res in check_results:
         if check_res == 'df_missing_values': #CRITICAL ISSUE
-            if 'Check notification' in list(check_results[check_res].columns): #then the check is passed and 0 missing values were encountered
-                calculated_scores['missing_values'] =  100
-                column_count_check_passed = columns_df
-            else:
-                missing_values_df = check_results['df_missing_values']
-                column_count_check_passed = int((missing_values_df['Percent missing'].astype(float) < max_missingness_percentage_allowed).sum())
-                calculated_scores['missing_values'] = round((column_count_check_passed/columns_df)*100, 2)
-
-            if column_count_check_passed < columns_df:
+            calculated_scores['missing_values'] =  round((100-check_results['df_missing_values']),2)
+            if calculated_scores['missing_values'] < (100-settings_dict['advanced_settings_missing']):
                 calculated_scores['missing_values_color'] = check_failed
                 penalty_points += critical
             else:
                 calculated_scores['missing_values_color'] = check_passed
-
 
         elif check_res == 'df_duplicates': #CRITICAL ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
@@ -47,7 +38,7 @@ def calculate_dataset_nutrition_label(df, check_results):
                 total_duplicates = int(duplicates_df['amount of duplicates'].sum())
                 calculated_scores['duplicate_instances'] =  round(((rows_df-total_duplicates)/rows_df)*100,2)
 
-            if (total_duplicates/rows_df)*100 > 1:
+            if (total_duplicates/rows_df)*100 > settings_dict['advanced_settings_duplicates']:
                 calculated_scores['duplicate_instances_color'] = check_failed
                 penalty_points += critical
             else:
@@ -62,7 +53,7 @@ def calculate_dataset_nutrition_label(df, check_results):
                 duplicate_cols = len(pd.unique(duplicate_columns_df['Column']))
                 calculated_scores['duplicate_columns'] =  round(((columns_df-duplicate_cols)/columns_df)*100, 2)
 
-            if duplicate_cols > 0:
+            if duplicate_cols > 0 and settings_dict['advanced_settings_duplicate_columns'] == False: #there are duplicate columns and user does not allow
                 calculated_scores['duplicate_columns_color'] = check_failed
                 penalty_points += critical
             else:
@@ -72,7 +63,7 @@ def calculate_dataset_nutrition_label(df, check_results):
             single_value_columns = int((check_results['df_amount_of_diff_values'].iloc[0] == 1).sum())
             calculated_scores['amount_of_diff_values'] =  round(((columns_df-single_value_columns)/columns_df)*100,2)
 
-            if single_value_columns > 0:
+            if single_value_columns > 0 and settings_dict['advanced_settings_single_value'] == False: #there is a redundant column and user does not allow
                 calculated_scores['amount_of_diff_values_color'] = check_failed
                 penalty_points += minor
             else:
@@ -85,7 +76,7 @@ def calculate_dataset_nutrition_label(df, check_results):
             mixed_columns = int(((first_row_numeric > 0) & (first_row_numeric < 1)).sum()) #check if columns contain mixed datatypes
             calculated_scores['mixed_data_types'] = round(((columns_df-mixed_columns)/columns_df)*100,2)
 
-            if mixed_columns > 0:
+            if mixed_columns > 0 and settings_dict['advanced_settings_mixed_data_types'] == False: #there are columns with mixed dtypes and user does not
                 calculated_scores['mixed_data_types_color'] = check_failed
                 penalty_points += moderate
             else:
@@ -98,11 +89,11 @@ def calculate_dataset_nutrition_label(df, check_results):
             else:
                 special_characters_df = check_results['df_special_characters']
                 calculated_scores['special_characters'] = round(((columns_df-len(special_characters_df))/columns_df)*100,2)
-            if len(special_characters_df) > 0:
+            if len(special_characters_df) > 0 and settings_dict['advanced_settings_mixed_data_types'] == False: #there are special characters and user does not allow
                 calculated_scores['special_characters_color'] = check_failed
                 penalty_points += minor
             else:
-                calculated_scores['special_characters_color'] = check_passed
+                calculated_scores['special_characters_color'] = check_passed #no special characters or they are allowed by user
 
         elif check_res == 'df_string_mismatch': #MINOR ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
@@ -111,8 +102,11 @@ def calculate_dataset_nutrition_label(df, check_results):
             else:
                 columns_with_stringmismatch = check_results[check_res]['Column Name'].nunique()
                 calculated_scores['string_mismatch'] =  round(((columns_df-columns_with_stringmismatch)/columns_df)*100, 2)
-                calculated_scores['string_mismatch_color'] = check_failed
-                penalty_points += moderate
+                if settings_dict['advanced_settings_string_mismatch'] == False:
+                    calculated_scores['string_mismatch_color'] = check_failed
+                    penalty_points += moderate
+                elif settings_dict['advanced_settings_string_mismatch'] == True: #then string mismatched are allowed by user
+                    calculated_scores['string_mismatch_color'] = check_passed
 
         elif check_res == 'df_outliers': #MINOR ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
@@ -122,7 +116,7 @@ def calculate_dataset_nutrition_label(df, check_results):
                 outliers_df = check_results['df_outliers']
                 calculated_scores['outliers'] =  round(((rows_df-len(outliers_df))/rows_df)*100,2)
 
-            if (len(outliers_df)/rows_df)*100 > 1:
+            if (len(outliers_df)/rows_df)*100 > settings_dict['advanced_settings_outliers']:
                 calculated_scores['outliers_color'] = check_failed
                 penalty_points += minor
             else:
@@ -136,12 +130,11 @@ def calculate_dataset_nutrition_label(df, check_results):
 
             upper = feature_feature_correlation_df.where(np.triu(np.ones(feature_feature_correlation_df.shape), k=1).astype(bool))
             upper = upper.apply(pd.to_numeric, errors='coerce')
-            high_corr_cols = [column for column in upper.columns if (any(upper[column] > feature_correlation_threshold) or any(upper[column] < -1*feature_correlation_threshold))] # Get the columns with high correlation
+            high_corr_cols = [column for column in upper.columns if (any(upper[column] > settings_dict['advanced_settings_correlation']) or any(upper[column] < -1*settings_dict['advanced_settings_correlation']))] # Get the columns with high correlation
             correlation_dict = {}
             #find with which columns it is highly correlated
             for col in high_corr_cols:
-                correlated_with = upper[col][upper[col] > feature_correlation_threshold].index.tolist()
-                #correlated_with = [upper.columns[i] for i in correlated_with_indices]
+                correlated_with = upper[col][upper[col] > settings_dict['advanced_settings_correlation']].index.tolist()
                 correlation_dict[col] = correlated_with
 
             calculated_scores['feature_correlations'] = round(((columns_df-(len(high_corr_cols)))/columns_df)*100,2)
@@ -158,7 +151,7 @@ def calculate_dataset_nutrition_label(df, check_results):
                 calculated_scores['feature_label_correlation_color'] = check_passed
             else:
                 feature_label_correlation_df = check_results['df_feature_label_correlation']
-                high_corr_cols = [column for column in feature_label_correlation_df.columns if float(feature_label_correlation_df[column]) > feature_correlation_threshold]#[column for column in feature_label_correlation_df.columns if any(float(feature_label_correlation_df[column]) > feature_correlation_threshold)]
+                high_corr_cols = [column for column in feature_label_correlation_df.columns if float(feature_label_correlation_df[column]) > settings_dict['advanced_settings_correlation']]#[column for column in feature_label_correlation_df.columns if any(float(feature_label_correlation_df[column]) > feature_correlation_threshold)]
                 calculated_scores['feature_label_correlation'] = round(((columns_df-(len(high_corr_cols)))/columns_df)*100,2)
                 calculated_scores['feature_label_correlation_color'] = check_warning
 
@@ -188,12 +181,13 @@ def calculate_dataset_nutrition_label(df, check_results):
                 total_conflicting_labels = int(conflicting_labels_df['Conflicting'].sum())
                 calculated_scores['conflicting_labels'] =  round((1 - (total_conflicting_labels/rows_df))*100,2)
 
-            if total_conflicting_labels > 0:
+            if total_conflicting_labels > 0 and settings_dict['advanced_settings_conflicting_labels'] == False: #there are conflicting label and user does not allow them
                 calculated_scores['conflicting_labels_color'] = check_failed
                 penalty_points += moderate
-            else:
+            else: #there are no conflictin labels, or user allows them
                 calculated_scores['conflicting_labels_color'] = check_passed
 
+    #sum up penalty points to determine Data readiness label
     if penalty_points < 3:
         DQ_label = 'A'
     elif penalty_points >= 3 and penalty_points <6:

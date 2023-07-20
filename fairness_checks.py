@@ -1,12 +1,10 @@
-
-#TODO: Later implementeren
 import pandas as pd
 from itertools import product
 import plotly.express as px
 
 
 def sensitive_feature_combinations(dataset_original, sensitive_features, target_column, bins=5):
-    """"function that finds all combinations of possible sensitive features and displays them in a table,
+    """"Check 16: Biased data. Function that finds all combinations of possible sensitive features and displays them in a table,
      used for plotting the stacked bar chart later on"""
 
     dataset = dataset_original.copy()
@@ -18,7 +16,6 @@ def sensitive_feature_combinations(dataset_original, sensitive_features, target_
 
     #obtain all combinations of sensitive features
     sensitive_combinations = list(product(*[dataset[feat].unique() for feat in sensitive_features]))
-    #print(sensitive_combinations)
 
     counts = {}
     # Loop through each sensitive feature combination
@@ -52,7 +49,6 @@ def plot_stacked_barchart(sensitive_feature_counts_table):
     list_of_labels.remove('sensitive_features')
     list_of_labels.remove('count')
     fig = px.bar(sensitive_feature_counts_table, x=list_of_labels, y='sensitive_features', barmode='stack', title='Sensitive Feature Combinations vs Target Column', orientation='h')
-    # Set the x-axis title
     fig.update_xaxes(title_text='Count')
 
     return fig

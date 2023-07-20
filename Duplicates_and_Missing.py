@@ -129,7 +129,6 @@ def duplicates(df, dtypes):
     #fix potential dash datatable issues
     final_df = dash_datatable_format_fix(duplicate_df)
 
-
     return final_df, dq_issue_report_string
 
 
