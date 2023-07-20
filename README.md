@@ -1,4 +1,4 @@
-# DataQualityTool
+# DQ Analyzer toolkit
 An automated tool for the quantitative assessment of data quality
 Python version 3.10
 
