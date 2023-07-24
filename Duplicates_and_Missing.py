@@ -108,11 +108,12 @@ def missing_values(dataset):
 def duplicates(df, dtypes):
     """"Check 1: Function that finds duplicate values"""
     columns_to_drop = []
-    #if ID column exist, do not include this is the check as this hinders finding duplicates
+    #if ID column exist or column with only unique values, do not include this is the check as this hinders finding duplicates
     for column in df.columns:
-        if dtypes[column] == 'not-generalizable':
+        if dtypes[column] == 'not-generalizable' and df[column].nunique() == len(df):
             columns_to_drop.append(column)
     df = df.drop(columns=columns_to_drop)
+    df = df.fillna(' ') #comparing NaN to NaN values returns false, so for this check replace with fictive missing value ' '
     #group df by all columns and check which occur more than once
     duplicate_df = df.groupby(df.columns.tolist()).apply(lambda x: list(x.index)).reset_index(name='indexes')
     duplicate_df = duplicate_df[duplicate_df['indexes'].apply(len) > 1]

@@ -71,7 +71,11 @@ def cleanlab_label_error(encoded_dataset, target):
     """"Check 7: Conflicting labels. Function that finds potential label errors (due to annotator mistakes),
     edge cases, and otherwise ambiguous examples"""
     #XGB gradient boosting ensemble
+
     model_XGBC = XGBClassifier(tree_method="hist", enable_categorical=True)  # hist is fastest tree method of XGBoost, use default model
+    #prevent errors with object columns
+    object_columns = encoded_dataset.select_dtypes(include=['object']).columns
+    encoded_dataset = encoded_dataset.drop(columns=object_columns)
 
     data_no_labels = encoded_dataset.drop(columns=[target])
     labels = encoded_dataset[target]

@@ -35,14 +35,21 @@ def pandas_dq_report(dataset, dtypes, mixed_data_types_df, special_characters_df
 
 
 
-def encode_categorical_columns(dataset, target, dtypes):
+def encode_categorical_columns(dataset, target, dtypes, mixed_dtypes_dict):
     """"Function that one-hot-encodes categorical columns and label encodes the target column. It returns the encoded dataset
     and the mapping of the original labels to the encoded labels"""
-    #Find all categorical columns
-    categorical_cols = [] #dataset.select_dtypes(include=['object', 'category']).columns.tolist()
+    #Find all categorical columns and mixed dtype column
+    categorical_cols = []
+    mixed_dtype_columns = []
     for col in dataset.columns:
         if dtypes[col] == 'categorical' or dtypes[col] == 'boolean':
             categorical_cols.append(col)
+        if mixed_dtypes_dict[col] == True:
+            mixed_dtype_columns.append(col)
+
+    if mixed_dtype_columns: #drop mixed dtype columns to prevent encoder bugs
+        dataset = dataset.drop(columns=mixed_dtype_columns)
+        categorical_cols = [col for col in categorical_cols if col not in mixed_dtype_columns]
 
     mapping = None
     target_is_categorical = False
@@ -206,8 +213,13 @@ def baseline_model_performance(dataset, target, dtypes):
         models.append(('Random Forest', RandomForestClassifier(n_jobs=-1)))
         models.append(('SVM', SVC()))
 
+    #prevent errors with object columns
+    object_columns = dataset.select_dtypes(include=['object']).columns
+    dataset = dataset.drop(columns=object_columns)
+
     #get X and y and split into train and test for fair model evaluation
     X = dataset.drop(columns=[target])
+
     y = dataset[target]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)

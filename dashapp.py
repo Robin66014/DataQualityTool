@@ -212,6 +212,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
 
     if n_clicks >= 1: #run checks button clicked
         dtypes_dict = dtypes[0]
+        print(dtypes_dict)
         task_type = 'other'
         if target != 'None': #check task type
             if dtypes_dict[target] == 'categorical' or dtypes_dict[target] == 'boolean':
@@ -265,6 +266,10 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         check_results['df_amount_of_diff_values'] = df_amount_of_diff_values
         df_mixed_data_types = Type_integrity.mixed_data_types(df)
         check_results['df_mixed_data_types'] = df_mixed_data_types
+        first_row_numeric = pd.to_numeric(df_mixed_data_types.iloc[0], errors='coerce')  # convert strings to numeric
+        mixed_columns_test = (first_row_numeric > 0) & (first_row_numeric < 1)
+        mixed_dtypes_dict = mixed_columns_test.to_dict() #necessary for encoding later on
+        print(mixed_dtypes_dict)
         df_special_characters = Type_integrity.special_characters(df)
         check_results['df_special_characters'] = df_special_characters
         df_string_mismatch = Type_integrity.string_mismatch(df)
@@ -432,7 +437,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
                                                                bordered=True, hover=True,
                                                                style={'overflowX': 'scroll'}),
                                       html.P(
-                                          "{} outliers have been found above the set probability threshold of {}.".format(
+                                          "{} outliers have been found with a probability higher than {}.".format(
                                               amount_of_outliers, threshold),
                                           style={'textAlign': 'center'}),
                                       html.P(
@@ -447,7 +452,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
                                               'overflowX': 'scroll'
                                           }),
                                       html.P(
-                                          "Potential outliers are visualized in the boxplot below.",
+                                          "Potential column value outliers are visualized in the boxplot below.",
                                           style={'textAlign': 'center'}),
                                       dcc.Graph(figure=box_plot),  # TODO: checken
                                       html.Hr(),
@@ -492,7 +497,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
                                                             hover=True, style={
                                            'overflowX': 'scroll'
                                        }),
-                                   html.P("There are {}% conflicting labels.".format(percent_conflicting),
+                                   html.P("There are {}% conflicting labels.".format(round(percent_conflicting,2)),
                                           style={'textAlign': 'center'}),
 
                                    ], title="Label purity ({}/100)".format(label_purity_score),
@@ -503,7 +508,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         #section for checks 16, 17 & 18
         html.Div(dcc.Loading(children=html.Div(id='bias_and_feature_information_accordion'), type='circle')),
         dq_checks_overview(calculated_scores, DQ_label, settings_dict),
-
+        dcc.Store(id='mixed_dtypes_storage', data=mixed_dtypes_dict, storage_type='memory'),  # save to obtain df later on
         html.Hr(),  # horizontal line
         html.H3('Additional checks', style={'textAlign': 'center'}),
         html.P('Press the "Run additional checks" button to detect potential label errors using Cleanlab'
@@ -637,9 +642,10 @@ def bias_graph(bias_dropdown, filepath, target):
     [Input('run-long-running-time-checks-button', 'n_clicks'),
      State('stored-filepath', 'data'),
      State('dtypes_dropdown', 'data'),
-     State('targetColumn', 'value')]
+     State('targetColumn', 'value'),
+     State('mixed_dtypes_storage', 'data')]
 )
-def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target):
+def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target, mixed_dtypes_dict):
     """"Check 7 & 19: label errors & baseline performance. Decoupled from the rest of the checks due to computational complexity"""
     if n_clicks >= 1: #run checks button clicked
         if target != 'None':
@@ -658,9 +664,10 @@ def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target):
 
                 df = plot_and_transform_functions.clean_dataset(df)
                 df, error_message = plot_and_transform_functions.upsample_minority_classes(df, target) #upsample instances that occur less than 5 times
+
                 #encode dataframe as required by cleanlab and save mapping to convert values back later on
                 encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
-                                                                                                              dtypes_dict)
+                                                                                                              dtypes_dict, mixed_dtypes_dict)
                 _, issues_dataframe_only_errors, wrong_label_count, accuracy_model = label_purity.cleanlab_label_error(encoded_dataframe, target)
                 issues_dataframe_only_errors['given_label'] = issues_dataframe_only_errors['given_label'].astype(int)
                 #convert numbers displayed by cleanlab back to original data convention for readability (e.g 0 --> iris-setosa)
@@ -714,9 +721,10 @@ def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target):
     [Input('run-checks-button', 'n_clicks'),
      State('stored-filepath', 'data'),
      State('dtypes_dropdown', 'data'),
-     State('targetColumn', 'value')]
+     State('targetColumn', 'value'),
+     State('mixed_dtypes_storage', 'data')]
 )
-def baseline_performance_assessment(n_clicks, filepath, dtypes, target):
+def baseline_performance_assessment(n_clicks, filepath, dtypes, target, mixed_dtypes_dict):
     """"plot baseline performance of three basic Sklearn models"""
     if n_clicks >= 1: #run checks button clicked
 
@@ -726,7 +734,7 @@ def baseline_performance_assessment(n_clicks, filepath, dtypes, target):
             dtypes_dict = dtypes[0]
             #encode df as numericl values are required for the models
             encoded_dataframe, mapping_encoding = plot_and_transform_functions.encode_categorical_columns(df, target,
-                                                                                                          dtypes_dict)
+                                                                                                          dtypes_dict, mixed_dtypes_dict)
             baseline_performance_plot = plot_and_transform_functions.baseline_model_performance(encoded_dataframe, target, dtypes_dict)
             return dcc.Graph(figure = baseline_performance_plot)
 

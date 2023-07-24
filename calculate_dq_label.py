@@ -60,8 +60,9 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 calculated_scores['duplicate_columns_color'] = check_passed
 
         elif check_res == 'df_amount_of_diff_values': #MINOR ISSUE
-            single_value_columns = int((check_results['df_amount_of_diff_values'].iloc[0] == 1).sum())
-            calculated_scores['amount_of_diff_values'] =  round(((columns_df-single_value_columns)/columns_df)*100,2)
+            single_value_columns = int((check_results['df_amount_of_diff_values'].iloc[0] == '1').sum()) #values in table are strings instead of integers
+            calculated_scores['amount_of_diff_values'] = round(((columns_df - single_value_columns) / columns_df) * 100,
+                                                               2)
 
             if single_value_columns > 0 and settings_dict['advanced_settings_single_value'] == False: #there is a redundant column and user does not allow
                 calculated_scores['amount_of_diff_values_color'] = check_failed

@@ -1,4 +1,5 @@
 import pandas
+import math
 from deepchecks.tabular import Dataset
 import deepchecks.tabular.checks
 import pandas as pd
@@ -62,6 +63,14 @@ def outlier_detection(dataset, nearest_neighors_percent = 0.01, threshold = 0.80
      the LoOP algorithm: (https://www.dbs.ifi.lmu.de/Publikationen/Papers/LoOP1649.pdf)"""
     try:
         #obtain deepcheck check result
+        if math.sqrt(len(dataset.data)) < 5: #minimum number of nearest neighbors
+            nearest_neighors_percent = 5/len(dataset.data)
+            if nearest_neighors_percent > 1:
+                nearest_neighors_percent = 1
+        else:
+            nearest_neighors_percent = round(((math.sqrt(len(dataset.data))) / len(dataset.data)), 2)  # take the percentage as
+            # the square root of the nr of observations to be effective at various dataset sizes
+
         checkOutlier = deepchecks.tabular.checks.OutlierSampleDetection(nearest_neighbors_percent=nearest_neighors_percent,
                                                                          n_samples=10000, timeout = 600, n_to_show = amount_of_samples)
         resultOutlier = checkOutlier.run(dataset)
