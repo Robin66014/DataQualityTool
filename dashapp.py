@@ -316,7 +316,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         check_results['df_feature_label_correlation'] = df_feature_label_correlation
 
         #determine which checks are passed and calculate final data readiness level
-        calculated_scores, DQ_label = calculate_dq_label.calculate_dataset_nutrition_label(df, check_results, settings_dict)
+        calculated_scores, DQ_label, executive_summary = calculate_dq_label.calculate_dataset_nutrition_label(df, check_results, settings_dict)
         #scores for displaying in accordion
         missing_and_duplicates_score = round((calculated_scores['duplicate_instances'] + calculated_scores['missing_values'] + calculated_scores['duplicate_columns'])/3,2)
         Type_integrity_score = round((calculated_scores['amount_of_diff_values'] + calculated_scores['mixed_data_types'] + calculated_scores['string_mismatch'] + calculated_scores['special_characters'])/4,2)
@@ -505,7 +505,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         ),
         #section for checks 16, 17 & 18
         html.Div(dcc.Loading(children=html.Div(id='bias_and_feature_information_accordion'), type='circle')),
-        dq_checks_overview(calculated_scores, DQ_label, settings_dict),
+        dq_checks_overview(calculated_scores, DQ_label, settings_dict, executive_summary),
         dcc.Store(id='mixed_dtypes_storage', data=mixed_dtypes_dict, storage_type='memory'),  # save to obtain df later on
         html.Hr(),  # horizontal line
         html.H3('Additional checks', style={'textAlign': 'center'}),
@@ -753,7 +753,7 @@ def fetch_data(filepath):
         return df
 
 
-def dq_checks_overview(check_results, DQ_label, settings_dict):
+def dq_checks_overview(check_results, DQ_label, settings_dict, executive_summary):
     """"Check result summarizing overview and data readiness label display"""
     if DQ_label == 'A':
         DQ_button_color = 'success'
@@ -823,7 +823,9 @@ def dq_checks_overview(check_results, DQ_label, settings_dict):
                                   color=f"{check_results['class_imbalance_color']}", className="mb-3")),
              dbc.Col(html.H6("Class imbalance check (gives a warning when the ratio of the rarest and the most common class is high (ratio <0.1))"))]),
 
-            html.Div(dbc.Button(f'DQ label: {DQ_label}', color=DQ_button_color, className="mr-3"), style={"display": "flex", "justify-content": "center", "align-items": "center", "height": "100%"}),
+            html.Div([dbc.Button(f'DQ label: {DQ_label}', id="dq_label_button", color=DQ_button_color, className="mr-3"), dbc.Tooltip("{}".format(executive_summary), target="dq_label_button")],
+                     style={"display": "flex", "justify-content": "center", "align-items": "center", "height": "100%"}
+                     ),
             html.Hr()
         ]
     )
