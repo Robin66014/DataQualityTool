@@ -154,7 +154,11 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 feature_label_correlation_df = check_results['df_feature_label_correlation']
                 high_corr_cols = [column for column in feature_label_correlation_df.columns if float(feature_label_correlation_df[column]) > settings_dict['advanced_settings_correlation']]#[column for column in feature_label_correlation_df.columns if any(float(feature_label_correlation_df[column]) > feature_correlation_threshold)]
                 calculated_scores['feature_label_correlation'] = round(((columns_df-(len(high_corr_cols)))/columns_df)*100,2)
-                calculated_scores['feature_label_correlation_color'] = check_warning
+                if len(high_corr_cols) > 0:
+                    calculated_scores['feature_label_correlation_color'] = check_warning
+                else:
+                    calculated_scores['feature_label_correlation_color'] = check_passed
+
 
         elif check_res == 'df_class_imbalance': #NOT TAKEN INTO DQ LABEL
             if 'Check notification' in list(check_results[check_res].columns):

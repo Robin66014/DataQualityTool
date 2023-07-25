@@ -164,7 +164,7 @@ def parse_contents(contents, filename, date):
                style={'textAlign': 'center'}),
         dash_table.DataTable(
             data = df.to_dict('records'),
-            columns = [{'name': i, 'id': i, 'deletable' : True} for i in df.columns],
+            columns = [{'name': i, 'id': i, 'deletable' : False} for i in df.columns],
             page_size = 10,
             editable=True,
             export_format='csv',
@@ -212,7 +212,6 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
 
     if n_clicks >= 1: #run checks button clicked
         dtypes_dict = dtypes[0]
-        print(dtypes_dict)
         task_type = 'other'
         if target != 'None': #check task type
             if dtypes_dict[target] == 'categorical' or dtypes_dict[target] == 'boolean':
@@ -269,7 +268,6 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         first_row_numeric = pd.to_numeric(df_mixed_data_types.iloc[0], errors='coerce')  # convert strings to numeric
         mixed_columns_test = (first_row_numeric > 0) & (first_row_numeric < 1)
         mixed_dtypes_dict = mixed_columns_test.to_dict() #necessary for encoding later on
-        print(mixed_dtypes_dict)
         df_special_characters = Type_integrity.special_characters(df)
         check_results['df_special_characters'] = df_special_characters
         df_string_mismatch = Type_integrity.string_mismatch(df)
@@ -910,4 +908,4 @@ def advanced_settings_accordion():
     )
 
 if __name__ == '__main__':
-    app.run_server(host='127.0.0.1', port='8050', debug=True)
+    app.run_server(host='127.0.0.1', port='8050', debug=False)
