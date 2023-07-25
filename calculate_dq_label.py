@@ -25,12 +25,12 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
             if calculated_scores['missing_values'] < (100-settings_dict['advanced_settings_missing']):
                 calculated_scores['missing_values_color'] = check_failed
                 penalty_points += critical
-                exec_sum_string_issues += "missing values, "
+                exec_sum_string_issues += "{}% missing values, ".format(round(check_results['df_missing_values'],2))
             else:
                 calculated_scores['missing_values_color'] = check_passed
 
             if calculated_scores['missing_values'] < 100:
-                exec_sum_string_issues += "missing values, "
+                exec_sum_string_issues += "{}% missing values, ".format(round(check_results['df_missing_values'],2))
 
         elif check_res == 'df_duplicates': #CRITICAL ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
@@ -41,7 +41,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 duplicates_df['amount of duplicates'] = pd.to_numeric(duplicates_df['amount of duplicates'])
                 total_duplicates = int(duplicates_df['amount of duplicates'].sum())
                 calculated_scores['duplicate_instances'] =  round(((rows_df-total_duplicates)/rows_df)*100,2)
-                exec_sum_string_issues += "duplicate instances, "
+                exec_sum_string_issues += "{}% duplicate instances, ".format(round((total_duplicates/rows_df)*100, 2))
 
             if (total_duplicates/rows_df)*100 > settings_dict['advanced_settings_duplicates']:
                 calculated_scores['duplicate_instances_color'] = check_failed
@@ -59,7 +59,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 duplicate_columns_df = check_results['df_duplicate_columns']
                 duplicate_cols = len(pd.unique(duplicate_columns_df['Column']))
                 calculated_scores['duplicate_columns'] =  round(((columns_df-duplicate_cols)/columns_df)*100, 2)
-                exec_sum_string_issues += "duplicate columns, "
+                exec_sum_string_issues += "{} duplicate column(s), ".format(duplicate_cols)
 
             if duplicate_cols > 0 and settings_dict['advanced_settings_duplicate_columns'] == False: #there are duplicate columns and user does not allow
                 calculated_scores['duplicate_columns_color'] = check_failed
@@ -79,7 +79,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 calculated_scores['amount_of_diff_values_color'] = check_passed
 
             if single_value_columns > 0:
-                exec_sum_string_issues += "redundant SV columns, "
+                exec_sum_string_issues += "{} redundant SV column(s), ".format(single_value_columns)
 
 
         elif check_res == 'df_mixed_data_types': #MODERATE ISSUE
@@ -95,7 +95,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 calculated_scores['mixed_data_types_color'] = check_passed
 
             if mixed_columns > 0:
-                exec_sum_string_issues += "mixed data type columns, "
+                exec_sum_string_issues += "{} mixed data type column(s), ".format(mixed_columns)
 
         elif check_res == 'df_special_characters': #MINOR ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
@@ -111,7 +111,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 calculated_scores['special_characters_color'] = check_passed #no special characters or they are allowed by user
 
             if len(special_characters_df) > 0:
-                exec_sum_string_issues += "special character only samples, "
+                exec_sum_string_issues += "{} column(s) with special character only samples, ".format(len(special_characters_df))
 
         elif check_res == 'df_string_mismatch': #MINOR ISSUE
             if 'Check notification' in list(check_results[check_res].columns):
@@ -120,7 +120,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
             else:
                 columns_with_stringmismatch = check_results[check_res]['Column Name'].nunique()
                 calculated_scores['string_mismatch'] =  round(((columns_df-columns_with_stringmismatch)/columns_df)*100, 2)
-                exec_sum_string_issues += "string mismatches, "
+                exec_sum_string_issues += "{} column(s) with string mismatches, ".format(columns_with_stringmismatch)
                 if settings_dict['advanced_settings_string_mismatch'] == False:
                     calculated_scores['string_mismatch_color'] = check_failed
                     penalty_points += moderate
@@ -134,7 +134,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
             else:
                 outliers_df = check_results['df_outliers']
                 calculated_scores['outliers'] =  round(((rows_df-len(outliers_df))/rows_df)*100,2)
-                exec_sum_string_issues += "outlier instances, "
+                exec_sum_string_issues += "{}% outlier instances, ".format(round((len(outliers_df)/rows_df)*100,2))
 
             if (len(outliers_df)/rows_df)*100 > settings_dict['advanced_settings_outliers']:
                 calculated_scores['outliers_color'] = check_failed
@@ -153,10 +153,11 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
             high_corr_cols = [column for column in upper.columns if (
                     any(upper[column] > settings_dict['advanced_settings_correlation']) or any(upper[column] < -1*settings_dict['advanced_settings_correlation']))] # Get the columns with high correlation
             very_high_corr_cols = [column for column in upper.columns if (
-                        any(upper[column] > 0.8) or any(
-                    upper[column] < -0.8))] #only used for executive summary report
+                        any(upper[column] > 0.9) or any(
+                    upper[column] < -0.9))] #only used for executive summary report
+            print('@@@@@@@very_high_corr_cols', very_high_corr_cols)
             if very_high_corr_cols:
-                exec_sum_string_issues += "highly correlated columns, "
+                exec_sum_string_issues += "{} highly correlated columns, ".format(len(very_high_corr_cols))
             correlation_dict = {}
             #find with which columns it is highly correlated
             for col in high_corr_cols:
@@ -181,7 +182,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 very_high_corr_cols = [column for column in feature_label_correlation_df.columns if
                                   float(feature_label_correlation_df[column]) > 0.8] #only used for executive summary
                 if very_high_corr_cols:
-                    exec_sum_string_issues += "highly correlated columns to the target feature, "
+                    exec_sum_string_issues += "{} highly correlated column(s) to the target feature, ".format(len(very_high_corr_cols))
                 calculated_scores['feature_label_correlation'] = round(((columns_df-(len(high_corr_cols)))/columns_df)*100,2)
                 if len(high_corr_cols) > 0:
                     calculated_scores['feature_label_correlation_color'] = check_warning
@@ -202,7 +203,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
 
             if calculated_scores['class_imbalance'] <= 10:
                 calculated_scores['class_imbalance_color'] = check_warning
-                exec_sum_string_issues += "highly imbalanced target classes, "
+                exec_sum_string_issues += "highly imbalanced target classes (ratio lowest/highest: {}), ". format(calculated_scores['class_imbalance'])
             else:
                 calculated_scores['class_imbalance_color'] = check_passed
 
@@ -215,7 +216,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 conflicting_labels_df['Conflicting'] = conflicting_labels_df['Instances'].str.count(',') + 1
                 total_conflicting_labels = int(conflicting_labels_df['Conflicting'].sum())
                 calculated_scores['conflicting_labels'] =  round((1 - (total_conflicting_labels/rows_df))*100,2)
-                exec_sum_string_issues += "conflicting labels, "
+                exec_sum_string_issues += "{}% conflicting labels, ".format(round((total_conflicting_labels/rows_df)*100,2))
 
             if total_conflicting_labels > 0 and settings_dict['advanced_settings_conflicting_labels'] == False: #there are conflicting label and user does not allow them
                 calculated_scores['conflicting_labels_color'] = check_failed

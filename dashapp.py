@@ -329,15 +329,19 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
 
         return html.Div([  # Data issue / check results section
             html.H3('Profiling report and issue overview', style={'textAlign': 'center'}),
-            html.P('This section contains a profling report showing important information'
-                   ' regarding ML issues found in the dataset', style={'textAlign': 'center'}),
-
+            html.P('This section contains a profling report showing important information,'
+                   ' regarding ML issues found in the dataset. In addition, the executive summary of your dataset is displayed.', style={'textAlign': 'center'}),
+            dbc.Container([
+                dbc.Alert([
+                    html.H4("Executive summary", className="alert-heading", style={'textAlign': 'center'}),
+                    executive_summary
+                ], color="secondary")
+            ]),
             dbc.Table.from_dataframe(pandas_dq_report_adjusted, striped=False, bordered=True, hover=True, style={
                 'overflowX': 'scroll'
             }),
-
-            html.Hr(),
             dcc.Markdown(result_string),
+            html.Hr(),
             html.H3('Data quality checks', style={'textAlign': 'center'}),
             html.P('This section contains a detailed analysis of possible data quality issues in your dataset', style={'textAlign': 'center'}),
             dbc.Accordion(children=[

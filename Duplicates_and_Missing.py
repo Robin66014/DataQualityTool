@@ -113,6 +113,14 @@ def duplicates(df, dtypes):
         if dtypes[column] == 'not-generalizable' and df[column].nunique() == len(df):
             columns_to_drop.append(column)
     df = df.drop(columns=columns_to_drop)
+    #the following block is required as fillna gives an error when replacing missing values with ' ' if it is not in their original categories
+    categorical_cols = []
+    for col in df.columns:
+        if str(df[col].dtype) == 'category':
+            categorical_cols.append(col)
+    for col in categorical_cols:
+        df[col] = df[col].cat.add_categories(' ') #prevent error in pd.fillna() for column of type 'category'
+
     df = df.fillna(' ') #comparing NaN to NaN values returns false, so for this check replace with fictive missing value ' '
     #group df by all columns and check which occur more than once
     duplicate_df = df.groupby(df.columns.tolist()).apply(lambda x: list(x.index)).reset_index(name='indexes')
