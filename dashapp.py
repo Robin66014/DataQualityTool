@@ -51,16 +51,21 @@ app.layout = dbc.Container(html.Div([
             children=html.Div([
                 'Drag and Drop or ',
                 html.A('Select Files')
-            ]),
-            style={
-                'width': '100%',
-                'height': '60px',
-                'lineHeight': '60px',
-                'borderWidth': '1px',
-                'borderStyle': 'dashed',
-                'borderRadius': '5px',
-                'textAlign': 'center',
-                'margin': '10px'
+            ], style={
+            'fontFamily': 'Arial',
+                }),
+        style={
+            'width': '100%',
+            'height': '60px',
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'solid',  # Solid border
+            'borderRadius': '5px',
+            'textAlign': 'center',
+            'margin': '10px',
+            'background': '#007BFF',  # Blue background
+            'color': 'white',  # White text color
+            'fontFamily': 'Arial',  # Specify the font
             },
             max_size=-1,
             multiple=True
@@ -82,19 +87,19 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             zip(list_of_contents, list_of_names, list_of_dates)]
         return children
     else:
-        return dbc.Container(html.Div([html.Br(),html.H6('Welcome to the data quality toolkit for assessing & analyzing tabular machine learning datasets,'
-                                               ' use the tool by following these four easy steps: ', style={'textAlign': 'left'}), html.Ol(
-            children=[
-                html.Li('Upload a file (allowed file types: .csv, .xls, .xlsx, .arff, .parquet).'),
-                html.Li('Select your target column, and if necessary, correct the automatically inferred data types of your columns.'),
-                html.Li("Press 'Run checks', your checks will now be run. (change preferences in Advanced settings)."),
-                html.Li("Optional (task dependent): Press 'Run additional checks' to find label errors in your dataset and see the baseline performance on"
-                        " three ML models. In addition, you can perform a bias analysis."),
-                html.Li(
-                    "Accept & apply the recommended issue remediations with just a few clicks!")
+        return dbc.Container(html.Div([html.Br(),html.H5('Welcome to the data quality toolkit for assessing, analyzing tabular & improving machine learning datasets', style={'textAlign': 'left'}),
+                                       html.Ol(
+                                        children=[
+                                            html.Li('Upload a file (allowed file types: .csv, .xls, .xlsx, .arff, .parquet).'),
+                                            html.Li('Select your target column, and if necessary, correct the automatically inferred data types of your columns.'),
+                                            html.Li("Press 'Run checks', your checks will now be run. (change preferences in Advanced settings)."),
+                                            html.Li("Optional (task dependent): Press 'Run additional checks' to find label errors in your dataset and see the baseline performance on"
+                                                    " three ML models. In addition, you can perform a bias analysis."),
+                                            html.Li(
+                                                "Accept & apply the recommended issue remediations and download the improved dataset with just a few clicks!")
 
-            ], style={'textAlign': 'left'}
-        )]), fluid=True, class_name="dbc")
+                                        ], style={'textAlign': 'left', 'fontFamily': 'Arial', 'fontSize': '15px'}
+                                    )]), fluid=True, class_name="dbc")
 
 def parse_contents(contents, filename, date):
     """"decode uploaded files depending on the specific format uploaded"""
