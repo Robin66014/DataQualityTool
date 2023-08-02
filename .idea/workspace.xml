@@ -6,11 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="55db62b5-3208-42d9-9368-7ea80f241962" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cached_files/a4e9341c-5968-44c7-9295-17993aa3246e_synthetic_verification_ds_2.pkl" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/calculate_dq_label.py" beforeDir="false" afterPath="$PROJECT_DIR$/calculate_dq_label.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dashapp.py" beforeDir="false" afterPath="$PROJECT_DIR$/dashapp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_amount_of_diff_values.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_amount_of_diff_values.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_class_imbalance.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_class_imbalance.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_conflicting_labels.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_conflicting_labels.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_duplicate_columns.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_duplicate_columns.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_duplicates.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_duplicates.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_feature_correlation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_feature_correlation.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_label_correlation.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_feature_label_correlation.csv" afterDir="false" />
@@ -19,6 +20,11 @@
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_outliers.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_outliers.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_special_characters.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_special_characters.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/datasets/dataframes_label/df_string_mismatch.csv" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/dataframes_label/df_string_mismatch.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/synthetic_test_dataset.xlsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/titanic_gender_submission.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/titanic_test.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/titanic_train.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/synthetic_data.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/synthetic_data.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,8 +34,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="Jupyter Notebook" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -51,7 +57,7 @@
     <option name="stateVersion" value="1" />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectId" id="2KVLfeOxqnzZ4Lbln1HRnCDX9Pn" />
   <component name="ProjectLevelVcsManager">
@@ -66,7 +72,7 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/robin/OneDrive - TU Eindhoven/Documents Robinkaelen Onedrive/Documenten/GitHub/pywash-master/app.py&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/robin/OneDrive - TU Eindhoven/Documents Robinkaelen Onedrive/Documenten/GitHub/DataQualityToolAccordion/testingFile2.py&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -80,6 +86,7 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents Robinkaelen Onedrive\Documenten\GitHub\DataQualityTool" />
       <recent name="C:\Users\robin\OneDrive\Documenten\GitHub\DataQualityTool" />
+      <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents\Data Science in Engineering\2022-2023\Graduation project" />
       <recent name="C:\Users\robin\OneDrive - TU Eindhoven\Documents\Data Science in Engineering\2022-2023\Graduation project\packaging_tutorial\src\example_package_Robin66014" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
@@ -177,9 +184,9 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Python.Type_integrity" />
       <item itemvalue="Python.dashapp" />
       <item itemvalue="Python.testingFile" />
-      <item itemvalue="Python.Type_integrity" />
       <item itemvalue="Python.usaairquality" />
     </list>
     <recent_temporary>
@@ -221,7 +228,22 @@
       <workItem from="1685632657464" duration="28346000" />
       <workItem from="1685892311585" duration="105310000" />
       <workItem from="1686575138287" duration="47091000" />
-      <workItem from="1687096492036" duration="3764000" />
+      <workItem from="1687096492036" duration="24204000" />
+      <workItem from="1687341351226" duration="10424000" />
+      <workItem from="1687369104678" duration="16490000" />
+      <workItem from="1687861314236" duration="2101000" />
+      <workItem from="1688039903577" duration="6000" />
+      <workItem from="1688039931335" duration="15754000" />
+      <workItem from="1688561585111" duration="13680000" />
+      <workItem from="1688641727164" duration="90000" />
+      <workItem from="1689240399574" duration="12554000" />
+      <workItem from="1689759128133" duration="4288000" />
+      <workItem from="1689771374998" duration="33607000" />
+      <workItem from="1690028791679" duration="24532000" />
+      <workItem from="1690127850868" duration="42010000" />
+      <workItem from="1690361473897" duration="275000" />
+      <workItem from="1690735915884" duration="3841000" />
+      <workItem from="1690791366077" duration="156000" />
     </task>
     <servers />
   </component>
@@ -245,7 +267,7 @@
     <SUITE FILE_PATH="coverage/DataQualityTool$Type_integrity.coverage" NAME="Type_integrity Coverage Results" MODIFIED="1679140568683" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DataQualityTool$usaairquality.coverage" NAME="usaairquality Coverage Results" MODIFIED="1679054216998" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../ydata-profiling-master/ydata-profiling-master/examples/usaairquality" />
     <SUITE FILE_PATH="coverage/DataQualityTool$DataTypeInference.coverage" NAME="DataTypeInference Coverage Results" MODIFIED="1680619989532" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/DataQualityTool$dashapp.coverage" NAME="dashapp Coverage Results" MODIFIED="1685539703501" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/DataQualityTool$dashapp.coverage" NAME="dashapp Coverage Results" MODIFIED="1689767867684" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DataQualityTool$main.coverage" NAME="main Coverage Results" MODIFIED="1680097283047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../RobinTest" />
     <SUITE FILE_PATH="coverage/DataQualityTool$outliers_and_correlations.coverage" NAME="outliers_and_correlations Coverage Results" MODIFIED="1680623570833" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/DataQualityTool$duplicates_and_missing.coverage" NAME="duplicates_and_missing Coverage Results" MODIFIED="1681223326064" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

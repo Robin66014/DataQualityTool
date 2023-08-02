@@ -25,7 +25,6 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
             if calculated_scores['missing_values'] < (100-settings_dict['advanced_settings_missing']):
                 calculated_scores['missing_values_color'] = check_failed
                 penalty_points += critical
-                exec_sum_string_issues += "{}% missing values, ".format(round(check_results['df_missing_values'],2))
             else:
                 calculated_scores['missing_values_color'] = check_passed
 
@@ -132,6 +131,9 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 calculated_scores['outliers'] =  100
                 outliers_df = []
             else:
+                if rows_df > 10000:
+                    rows_df = 10000 #since outliers are based on 10.000 samples at most due to computational complexity
+
                 outliers_df = check_results['df_outliers']
                 calculated_scores['outliers'] =  round(((rows_df-len(outliers_df))/rows_df)*100,2)
                 exec_sum_string_issues += "{}% outlier instances, ".format(round((len(outliers_df)/rows_df)*100,2))
@@ -141,6 +143,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 penalty_points += minor
             else:
                 calculated_scores['outliers_color'] = check_passed
+            rows_df = len(df) #set the correct value again
 
         elif check_res == 'df_feature_feature_correlation': #MINOR ISSUE
             feature_feature_correlation_df = check_results['df_feature_feature_correlation'].copy()
@@ -155,7 +158,6 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
             very_high_corr_cols = [column for column in upper.columns if (
                         any(upper[column] > 0.9) or any(
                     upper[column] < -0.9))] #only used for executive summary report
-            print('@@@@@@@very_high_corr_cols', very_high_corr_cols)
             if very_high_corr_cols:
                 exec_sum_string_issues += "{} highly correlated columns, ".format(len(very_high_corr_cols))
             correlation_dict = {}

@@ -16,9 +16,12 @@ import outliers_and_correlations
 import dash_bootstrap_components as dbc
 import label_purity
 import plot_and_transform_functions
+import dq_improvements
 import os
 import logging
+from dash.exceptions import PreventUpdate
 #silence unneccesary warnings
+
 deepchecks.set_verbosity(logging.ERROR)
 os.environ['DISABLE_LATEST_VERSION_CHECK'] = 'True'
 
@@ -39,7 +42,6 @@ current_directory = os.path.dirname(os.path.realpath('dashapp.py'))
 cache_dir = os.path.join(current_directory, 'cached_files')
 
 app.title = "Data Quality Analyzer"
-
 #app layout
 app.layout = dbc.Container(html.Div([
     html.H1("Data Quality Analyzer", style={'fontSize':50, 'textAlign':'center'}),
@@ -87,7 +89,9 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
                 html.Li('Select your target column, and if necessary, correct the automatically inferred data types of your columns.'),
                 html.Li("Press 'Run checks', your checks will now be run. (change preferences in Advanced settings)."),
                 html.Li("Optional (task dependent): Press 'Run additional checks' to find label errors in your dataset and see the baseline performance on"
-                        " three ML models. In addition, you can perform a bias analysis.")
+                        " three ML models. In addition, you can perform a bias analysis."),
+                html.Li(
+                    "Accept & apply the recommended issue remediations with just a few clicks!")
 
             ], style={'textAlign': 'left'}
         )]), fluid=True, class_name="dbc")
@@ -158,24 +162,7 @@ def parse_contents(contents, filename, date):
         #Main container including all check results
         html.Div(dcc.Loading(children=html.Div(id='container-checks-button-pressed'), type='cube')),
 
-        #Dataset overview section, editable & exportable
-        html.H3('Dataset overview', style={'textAlign': 'center'}),
-        html.P('Click the dataset to edit a cell, filter using >, >=, <, and <=, or search text (case-sensitive) and press the EXPORT button to download the edited dataset.',
-               style={'textAlign': 'center'}),
-        dash_table.DataTable(
-            data = df.to_dict('records'),
-            columns = [{'name': i, 'id': i, 'deletable' : False} for i in df.columns],
-            page_size = 10,
-            editable=True,
-            export_format='csv',
-            row_deletable=True,
-            filter_action='native',
 
-            style_table={
-                'overflowX': 'scroll'
-            }
-        ),
-        html.Hr(),  # horizontal line
         #HITL remediations container
         html.Div(id='cleaning-assistant-container'),
     ]), fluid = True, class_name="dbc")
@@ -246,35 +233,43 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
 
         #RUNNING OF THE CHECKS
         check_results = {} #dictionary for saving check results
+        rows, cols = df.shape
 
         #duplicates & missing (checks 1 up until 4)
         df_missing_values = Duplicates_and_Missing.missing_values(df)
-        total_missing_values = df.isna().sum().sum()
-        rows, cols = df.shape
+        missing_value_mask = df.isna()
+        total_missing_values = missing_value_mask.sum().sum()
+
         total_missing_percentage = (total_missing_values/(rows*cols))*100
         check_results['df_missing_values'] = total_missing_percentage
         df_duplicates, duplicates_result_string = Duplicates_and_Missing.duplicates(df, dtypes_dict)
         result_strings.append(duplicates_result_string)
         check_results['df_duplicates'] = df_duplicates
+
         df_duplicate_columns, duplicate_columns_result_string = Duplicates_and_Missing.duplicate_column(df)
         result_strings.append(duplicate_columns_result_string)
         check_results['df_duplicate_columns'] = df_duplicate_columns
 
         #type integrity checks (checks 8 up until 11)
         df_amount_of_diff_values = Type_integrity.amount_of_diff_values(df)
+
         check_results['df_amount_of_diff_values'] = df_amount_of_diff_values
         df_mixed_data_types = Type_integrity.mixed_data_types(df)
         check_results['df_mixed_data_types'] = df_mixed_data_types
+
         first_row_numeric = pd.to_numeric(df_mixed_data_types.iloc[0], errors='coerce')  # convert strings to numeric
         mixed_columns_test = (first_row_numeric > 0) & (first_row_numeric < 1)
         mixed_dtypes_dict = mixed_columns_test.to_dict() #necessary for encoding later on
         df_special_characters = Type_integrity.special_characters(df)
+
         check_results['df_special_characters'] = df_special_characters
+
         df_string_mismatch = Type_integrity.string_mismatch(df)
         check_results['df_string_mismatch'] = df_string_mismatch
 
         #outliers & correlations (check 14&15)
         df_feature_feature_correlation, correlationFig = outliers_and_correlations.feature_feature_correlation(ds)
+
         check_results['df_feature_feature_correlation'] = df_feature_feature_correlation
         df_outliers, amount_of_outliers, threshold, outlier_prob_scores, outlier_result_string = outliers_and_correlations.outlier_detection(ds)
         result_strings.append(outlier_result_string)
@@ -317,6 +312,16 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
 
         #determine which checks are passed and calculate final data readiness level
         calculated_scores, DQ_label, executive_summary = calculate_dq_label.calculate_dataset_nutrition_label(df, check_results, settings_dict)
+        #obtain problematic indices for data cleaning later on
+
+        dq_issues_dict = dq_improvements.obtain_indices_with_issues(df, check_results, settings_dict)
+        #add ID columns
+        for col in df.columns:
+            if dtypes_dict[col] == 'not-generalizable':
+                if col not in dq_issues_dict['redundant_columns']:
+                    dq_issues_dict['redundant_columns'].append(col)
+
+
         #scores for displaying in accordion
         missing_and_duplicates_score = round((calculated_scores['duplicate_instances'] + calculated_scores['missing_values'] + calculated_scores['duplicate_columns'])/3,2)
         Type_integrity_score = round((calculated_scores['amount_of_diff_values'] + calculated_scores['mixed_data_types'] + calculated_scores['string_mismatch'] + calculated_scores['special_characters'])/4,2)
@@ -341,7 +346,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
                 'overflowX': 'scroll'
             }),
             dcc.Markdown(result_string),
-            html.Hr(),
+            html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),
             html.H3('Data quality checks', style={'textAlign': 'center'}),
             html.P('This section contains a detailed analysis of possible data quality issues in your dataset', style={'textAlign': 'center'}),
             dbc.Accordion(children=[
@@ -511,14 +516,16 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         html.Div(dcc.Loading(children=html.Div(id='bias_and_feature_information_accordion'), type='circle')),
         dq_checks_overview(calculated_scores, DQ_label, settings_dict, executive_summary),
         dcc.Store(id='mixed_dtypes_storage', data=mixed_dtypes_dict, storage_type='memory'),  # save to obtain df later on
-        html.Hr(),  # horizontal line
+        html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),  # horizontal line
         html.H3('Additional checks', style={'textAlign': 'center'}),
         html.P('Press the "Run additional checks" button to detect potential label errors using Cleanlab'
-               ' & to perform a baseline performance assessment by training three ML models on your dataset.', style={'textAlign': 'center'}),
+               ' & to perform a baseline performance assessment by training three ML models on your dataset. Note that these check may take a while to run.', style={'textAlign': 'center'}),
         #section for check 7 & 19
         html.Div(dbc.Button('Run additional checks', id='run-long-running-time-checks-button', n_clicks=0, color='primary'), style={"display": "flex", "justify-content": "center", "align-items": "center", "height": "100%"}),
-        html.Hr(),
-        html.Div(dcc.Loading(children=html.Div(id='long_running_time_accordion'), type='circle')), #TODO: boosdoener traagheid
+        html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),
+        html.Div(dcc.Loading(children=html.Div(id='long_running_time_accordion'), type='circle')),
+            dcc.Store(id='store-dq_issues_dict', data=dq_issues_dict),
+        layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters, dtypes_dict, dq_issues_dict), #TODO: updaten voor dq_issues_dict
         ])
     else:
         html.Hr()
@@ -568,22 +575,24 @@ def bias_and_feature_information_accordion(n_clicks, filepath, dtypes, target):#
                                                 id="loading-2",
                                                 children=html.Div(id="feature_importance_plot_div")),
                                             html.Hr(),
-
-                                            # Subgroup bias analysis
-                                            html.H3('Bias analysis (DIY)', style={'textAlign': 'center'}),
-                                            html.P(
-                                                'In the dropdown menu below, select the sensitive features (if any) that exist in your dataset. The bar chart indicates the amount of times'
-                                                ' a specific sensitive subgroup appears in your dataset, and the distribution of the class label for that subgroup'
-                                                ' NOTE: it can take a while in order for the chart to be displayed.',
-                                                style={'textAlign': 'center'}),
-                                            dcc.Dropdown(id="biasDropdown",
-                                                         options=[{'label': x, 'value': x} for x in df.columns],
-                                                         multi=True,
-                                                         placeholder="Select sensitive feature(s)"),
-                                            dcc.Loading(
-                                                id="loading-3",
-                                                children=html.Div(id="biasGraph")),
-                                        ], title="Bias & feature information"),
+                                        ], title="Feature information"),
+                                dbc.AccordionItem(
+                                    [
+                                        #subgroup bias analysis
+                                        html.H3('Bias analysis (DIY)', style={'textAlign': 'center'}),
+                                        html.P(
+                                            'In the dropdown menu below, select the sensitive features (if any) that exist in your dataset. The bar chart indicates the amount of times'
+                                            ' a specific sensitive subgroup appears in your dataset, and the distribution of the class label for that subgroup'
+                                            ' NOTE: it can take a while in order for the chart to be displayed.',
+                                            style={'textAlign': 'center'}),
+                                        dcc.Dropdown(id="biasDropdown",
+                                                     options=[{'label': x, 'value': x} for x in df.columns],
+                                                     multi=True,
+                                                     placeholder="Select sensitive feature(s)"),
+                                        dcc.Loading(
+                                            id="loading-3",
+                                            children=html.Div(id="biasGraph")),
+                                    ], title="Bias analysis"),
                                     ],
                                     start_collapsed=True
                                 ),
@@ -677,13 +686,14 @@ def cleanlab_and_baseline_performance(n_clicks, filepath, dtypes, target, mixed_
                 issues_dataframe_only_errors['predicted_label'] = issues_dataframe_only_errors['predicted_label'].astype(int)
                 issues_dataframe_only_errors['predicted_label'] = issues_dataframe_only_errors['predicted_label'].map(
                     mapping_encoding)
+
             else:
                 issues_dataframe_only_errors = pd.DataFrame(
                 {"Check notification": ["This check is not applicable as there is no target column selected or the problem at hand"
                              " is not a classification problem"]})
                 wrong_label_count = 0
                 accuracy_model = 0
-
+                error_message = 'No classification problem.'
             return dbc.Accordion(
                                 children=[
                                     dbc.AccordionItem(
@@ -767,7 +777,7 @@ def dq_checks_overview(check_results, DQ_label, settings_dict, executive_summary
         DQ_button_color = 'danger'
 
     return html.Div(
-        [html.Hr(),
+        [html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),
          html.H3('Data quality check results overview & DQ label', style={'textAlign': 'center'}),
          html.P('The bars underneath give a short summary about your check results. Green means that the check is passed, red means that the check is failed,'
                 ' and yellow indicates a warning. The yellow scores are not taken into account in the calculation of the  data quality label.', style={'textAlign': 'center'}),
@@ -912,6 +922,581 @@ def advanced_settings_accordion():
         ],start_collapsed=True,
         style={"width": "50%"},  # adjust as needed
     )
+
+############################################################################################################################################
+############################################################################################################################################
+###################################################AUTOMATED CLEANING SECTION###############################################################
+############################################################################################################################################
+def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters, dtypes, dq_issues_dict):
+    data = fetch_data(filepath)
+    data_with_index = data.reset_index().rename(columns={'index': 'Original Index'}) #add original index column to keep track of original positioning
+    filepath2 = filepath[:-4] +'_cleaned.pkl' #create a new file to not hinder the 'additional checks' when edits are made to the dataframe
+    data_with_index.to_pickle(filepath2) #Store a new file so no problems occur when user decides to run the 'additional checks' after having cleaned his data
+
+    df_string_mismatch, df_special_characters = fix_dataframes(df_string_mismatch, df_special_characters)
+
+
+    dataframe_dict = {'df_string_mismatch': df_string_mismatch.to_dict(),
+                      'df_special_characters': df_special_characters.to_dict()}
+    dropdown_options_impute = ['most frequent', 'median', 'mean', 'do not impute'] #do not impute to let user choose a different constant value for each col
+    impute_type_for_column = {} #storage for recommended imputation types (which are adjustable by dropdown)
+    for col in data.columns:
+        if dtypes[col] == 'floating' or dtypes[col] == 'integer' or dtypes[col] == 'numeric': #recommend mean
+            impute_type_for_column[col] = 'mean'
+        elif dtypes[col] == 'categorical' or dtypes[col] == 'boolean': #recommend most frequent
+            impute_type_for_column[col] = 'most frequent'
+        else:
+            impute_type_for_column[col] = 'do not impute' #motivate users to think of an appropriate method themselves
+    impute_type_for_column = pd.DataFrame(impute_type_for_column, index=[0])
+
+    return html.Div([html.H3('Clean your dataset', style={'textAlign': 'center'}),
+        html.P('Accept & apply the recommended fixes with just a few clicks! Open one of the items below and the datatable '
+               'will update accordingly. The datatable can be edited, and after you are finished cleaning your data, press "EXPORT CLEANED DATA" to download the cleaned data.'
+               ' No data in the datatable? Then there is nothing to fix for that issue!', style={'textAlign': 'center'}),
+        html.Div(id='hidden-div-duplicates', style={'display': 'none'}),
+     html.Div(id='hidden-div-outliers', style={'display': 'none'}),
+    dcc.Store(id='stored-filepath2', data=filepath2, storage_type='memory'),
+     dcc.Store(id='store-deleted-indices', data=[]),
+    dcc.Store(id='store-deleted-columns', data=[]),
+     dcc.Store(id='store-changed-data', data=[]),
+    dcc.Store(id='store-button-clicks', data={'missing_values' : 0, 'columns' : 0, 'string_mismatch' : 0, 'special_characters' : 0}),
+
+    dcc.Store(id='store-dataframes', data=dataframe_dict),
+        dbc.Accordion(
+            [
+                dbc.AccordionItem([
+                        # Feature type table
+                        dash_table.DataTable(
+                            id='imputation-methods',
+                            data=impute_type_for_column.to_dict('records'),
+                            columns=[{"name": i, "id": i, 'presentation': 'dropdown'} for i in
+                                     data.columns],
+                            editable=True,
+                            dropdown={
+                                i: {'options': [{'label': j, 'value': j} for j in
+                                                dropdown_options_impute]} for i in data.columns},
+                            style_table={
+                                'overflowX': 'scroll', 'height': '250px'
+                            }
+                        ),
+                        dbc.Button("Impute missing values", id="impute-missing-values-button", color="danger", className="mr-1", n_clicks=0),
+                        html.P('INFO: Imputations will only become visible in the datatable when switching tabs.')
+                                ],
+                    title="Missing value imputation ({})".format('1/5'),
+                    item_id="imputation",
+                ),
+                dbc.AccordionItem(
+                    [
+                    dbc.RadioItems(
+                        options=[
+                            {"label": "Duplicate instances", "value": 'duplicates'},
+                            {"label": "Outlier instances", "value": 'outliers'},
+                            {"label": "Redundant columns", "value": 'columns'}
+                        ],
+                        value='duplicates',
+                        inline=True,
+                        id="radioitems-deletions"
+                    ),
+                        html.Hr(),
+                        dbc.Row([
+                            dbc.Col(
+                                dbc.Button("Delete duplicates", id="delete-duplicates-button", color="danger", className="mr-1", n_clicks=0),
+                                width={"size": 2},  # for example, this could take up 2 of the 12 column units
+                                align="start",  # align to the left
+                                style={"display": "block"}
+                            ),
+                            dbc.Col(
+                                dbc.Button("Delete outliers", id="delete-outliers-button", color="danger", className="mr-1", n_clicks=0),
+                                width={"size": 2},  # for example, this could take up 2 of the 12 column units
+                                align="start",  # align to the left
+                                style={"display": "block"}
+                            ),
+                            dbc.Col([
+                                dcc.Dropdown(
+                                    id='column-dropdown',
+                                    options=[{'label': i, 'value': i} for i in dq_issues_dict['redundant_columns']],
+                                    value='Select a column to remove',
+                                    style={"display": "none"}
+                                )]),
+                            dbc.Col(
+                                dbc.Button("Delete column", id="delete-column-button", color="danger", n_clicks=0, className="mr-1", style={"display": "none"}),
+                                width={"size": 2}
+                            ),
+                            dbc.Col(html.P('INFO: column deletions become visible when you switch to the next tab or download the dataset',
+                               id='delete-column-text', style={"display": "block", "width": "16.66%"}),
+                                    width={"size": 2}),
+                            dbc.Col(
+                                    width={"size": 6},
+                                ),
+                        ])
+
+                    ],
+                    title="Recommended deletions ({})".format('2/5'),
+                    item_id="deletions",
+                ),
+                dbc.AccordionItem(
+                    [
+                        dbc.RadioItems(
+                            options=[
+                                {"label": "String mismatch", "value": 'string-mismatch'},
+                                {"label": "Special characters", "value": 'special-characters'},
+                                {"label": "Conflicting labels", "value": 'conflicting-labels'},
+                            ],
+                            value='string-mismatch',
+                            inline=True,
+                            id="radioitems-corrections"
+                        ),
+                            html.Hr(),
+                        # dbc.Input(id="cap-column-value-outliers-input", inputmode='numeric', value="5000",
+                        #           style={"display": "block", "width": "16.66%"}),
+                        # dbc.Button("cap column value outliers", id="cap-column-value-outliers-button", color="danger",
+                        #            className="mr-1", n_clicks=0,
+                        #            style={"display": "block", "width": "16.66%"}),
+
+                        # string mismatches button
+                        dbc.Row([dbc.Col(
+                                dcc.Dropdown(
+                                    id='string-mismatch-dropdown',
+                                    options=[{'label': i, 'value': i} for i in list(set(df_string_mismatch['Base form']))],
+                                    value=df_string_mismatch['Base form'][0],
+
+                                ), style={"display": "block", "width": "5%"}, id='string-mismatch-dropdown-col'),
+                            dbc.Col(dbc.Button("Fix string mismatch", id="string-mismatch-button", color="danger",
+                                   className="mr-1", n_clicks=0,
+                                   ), style={"display": "None", "width": "16.66%"}, id="string-mismatch-button-col"),
+                                ]),
+
+                        # replace special character
+                        dbc.Input(id="fix-special-characters-input", value="FILL IN REPLACEMENT VALUE",
+                                  style={"display": "block", "width": "16.66%"}),
+                        dbc.Button("Fix special characters", id="fix-special-characters-button", color="danger",
+                                   className="mr-1", n_clicks=0,
+                                   style={"display": "block", "width": "16.66%"}),
+
+                        html.P('Walk through the table and adjust the target column values if required',
+                               id='conflicting-labels-text', style={"display": "block", "width": "16.66%"}),
+
+
+                            ],
+                    title="Recommended corrections ({})".format('3/5'),
+                    item_id="corrections",
+                ),
+            ],
+            id="accordion",
+            start_collapsed=True
+        ),
+        html.Div(id='accordion-container'),
+        dash_table.DataTable(
+            id='datatable',
+            columns=[{"name": i, "id": i} for i in data.columns],
+            data=data_with_index.to_dict('records'),
+            editable=True,
+            row_deletable=True,
+            page_action='native',
+            page_current=0,
+            page_size = 10,
+            style_table={
+                'overflowX': 'scroll'}
+        ),
+        dbc.Button('EXPORT CLEANED DATA', color = 'primary', id='export-button', n_clicks=0, className="mr-1",),
+        dcc.Download(id="download")
+    ])
+
+
+@app.callback(
+    Output('datatable', "data"),
+    Output('datatable', 'page_action'),
+    [Input("accordion", "active_item"),
+     Input('radioitems-deletions', 'value'),
+     Input('radioitems-corrections', 'value'),
+     Input('delete-duplicates-button', 'n_clicks'),
+    Input('delete-outliers-button', 'n_clicks'),
+     Input('datatable', 'page_current'),
+     Input('datatable', 'page_size'),
+     State('stored-filepath2', 'data'),
+     State('store-deleted-indices', 'data'),
+    State('store-deleted-columns', 'data'),
+     State('store-changed-data', 'data'),
+     State('store-dq_issues_dict', 'data'),
+     ]
+)
+def toggle_accordion(active_key, radio_deletions_selected, radio_corrections_selected, del_duplicates_button, del_outliers_button,
+                     page_current, page_size,
+                     filepath2, deleted_indices, deleted_columns, changed_data, dq_issues_dict):
+    df = fetch_data(filepath2)
+    df = update_dataframe(df, changed_data, deleted_indices, deleted_columns, filepath2) #apply changes to df when switch in accordion occurs
+    if active_key == 'imputation':
+        current_indices = obtain_current_indices(df, dq_issues_dict['missing_values'])
+        df_filtered = df.iloc[current_indices]
+
+        return df_filtered.to_dict('records'), 'custom'
+
+    elif active_key == 'deletions':
+
+        if radio_deletions_selected == 'duplicates':
+            current_indices = obtain_current_indices(df, dq_issues_dict['duplicate_instances']) #TODO vervangen voor indices duplicate instances
+
+            if del_duplicates_button: #if pressed, display empty df
+                df_filtered = pd.DataFrame()
+
+            else:
+                df_filtered = df.iloc[current_indices]#filter rows based on the indices
+
+            return df_filtered.to_dict('records'), 'custom'
+
+
+        elif radio_deletions_selected == 'outliers':
+            current_indices = obtain_current_indices(df, dq_issues_dict['outlier_instances'])  # TODO vervangen voor indices duplicate instances
+            # filter rows based on the indices
+
+            if del_outliers_button: #if pressed, display empty df
+                df_filtered = pd.DataFrame()
+            else:
+                df_filtered = df.iloc[current_indices]#filter rows based on the indices
+
+            #reset the data to show all rows
+            return df_filtered.to_dict('records'), 'custom'
+
+
+        elif radio_deletions_selected == 'columns':  #redundant columns selected
+            #filter rows based on the indices
+            df_filtered = df[:0]
+            if deleted_columns:
+                for column in list(set(deleted_columns)):
+                    if column in df.columns:
+                        df_filtered = df.drop(columns=column)
+
+            return df_filtered.to_dict('records'), 'custom'
+
+        else:
+            return df.to_dict('records'), 'custom'
+
+    elif active_key == 'corrections':
+
+        if radio_corrections_selected == 'column-value-outliers':
+
+            current_indices = obtain_current_indices(df, dq_issues_dict[
+                'cv_outliers'])
+            # filter rows based on the indices
+
+            df_filtered = df.loc[current_indices]  # filter rows based on the indices
+
+            # reset the data to show all rows
+            return df_filtered.to_dict('records'), 'custom'
+
+        elif radio_corrections_selected == 'string-mismatch':
+
+            current_indices = obtain_current_indices(df, dq_issues_dict[
+                'string_mismatch'])
+            # filter rows based on the indices
+
+            df_filtered = df.loc[current_indices]  # filter rows based on the indices
+
+            # reset the data to show all rows
+            return df_filtered.to_dict('records'), 'custom'
+
+
+        elif radio_corrections_selected == 'special-characters':
+
+            current_indices = obtain_current_indices(df, dq_issues_dict[
+                'special_characters'])
+            # filter rows based on the indices
+
+            df_filtered = df.loc[current_indices]  # filter rows based on the indices
+
+            # reset the data to show all rows
+            return df_filtered.to_dict('records'), 'custom'
+
+
+        elif radio_corrections_selected == 'conflicting-labels':
+
+            current_indices = obtain_current_indices(df, dq_issues_dict[
+                'conflicting_labels'])
+            # filter rows based on the indices
+
+            df_filtered = df.loc[current_indices]  # filter rows based on the indices
+
+            # reset the data to show all rows
+            return df_filtered.to_dict('records'), 'custom'
+
+    else:
+        return df.to_dict('records'), 'native' #use table style 'native' to speed up loading of page
+
+
+@app.callback(
+    [Output('store-deleted-indices', 'data'),
+    Output('store-deleted-columns', 'data'),
+     Output('store-changed-data', 'data'),
+     Output('store-button-clicks', 'data')],
+    Input('datatable', 'data_previous'),
+    Input('datatable', 'data'),
+    Input('impute-missing-values-button', 'n_clicks'),
+    Input('delete-duplicates-button', 'n_clicks'),
+    Input('delete-outliers-button', 'n_clicks'),
+    Input('delete-column-button', 'n_clicks'),
+    Input('string-mismatch-button', 'n_clicks'),
+    Input('fix-special-characters-button', 'n_clicks'),
+    [State('store-deleted-indices', 'data'),
+    State('store-deleted-columns', 'data'),
+     State('store-changed-data', 'data'),
+    State('radioitems-deletions', 'value'),
+    State('store-dq_issues_dict', 'data'),
+    State('column-dropdown', 'value'),
+    State('store-button-clicks', 'data'),
+    State('string-mismatch-dropdown', 'value'),
+    State('fix-special-characters-input', 'value'),
+    State('dtypes_dropdown', 'data'),
+    State('imputation-methods', 'data'),
+    State('store-dataframes', 'data'),
+    State("accordion", "active_item"),
+    State('stored-filepath2', 'data'),
+     ] #TODO: toevoegen dict met issues as state om huidige bug te voorkomen
+)
+def store_datatable_edits(previous, current, impute_missing_values_button, del_duplicates_button, del_outliers_button, del_column_button,
+                          fix_string_mismatch_button, fix_special_characters_button,
+
+                          deleted_indices, deleted_columns,
+                          changed_data, radioitem_deletions, dq_issues_dict, column_dropdown_value, previous_button_clicks,
+                          string_mismatch_dropdown_value, fix_special_characters_input, dtypes, imputation_methods, stored_dfs, active_item, filepath2):
+
+    df_current, df_previous = pd.DataFrame(data=current), pd.DataFrame(data=previous)
+
+    if df_current.empty:
+        if active_item == 'deletions':
+            if radioitem_deletions == 'duplicates':  # then the last item was removed in the datatable was removed
+                deleted_indices.append(dq_issues_dict['duplicate_instances'])
+                return deleted_indices, deleted_columns, changed_data, previous_button_clicks
+            elif radioitem_deletions == 'outliers':  # then the last item was removed in the datatable was removed
+                deleted_indices.append(dq_issues_dict['outlier_instances'])
+                return deleted_indices, deleted_columns, changed_data, previous_button_clicks
+            elif radioitem_deletions == 'columns':
+                if del_column_button - previous_button_clicks[
+                    'columns'] == 1:  # then it was clicked, and we should add the current column of the dropdown
+                    deleted_columns.append(column_dropdown_value)
+                    previous_button_clicks['columns'] += 1
+                    return deleted_indices, deleted_columns, changed_data, previous_button_clicks
+                else:
+                    return deleted_indices, deleted_columns, changed_data, previous_button_clicks  # solely to prevent error in comparison of previous to current df
+
+
+    if impute_missing_values_button - previous_button_clicks['missing_values'] == 1: #then it has been clicked
+        previous_button_clicks['missing_values'] += 1
+        df_entire = fetch_data(filepath2)
+        dtypes_dict = dtypes[0]
+        changed = dq_improvements.impute_missing_values(df_entire, dtypes_dict, imputation_methods) #use entire df for correct imputations
+        changed_data.extend(changed)
+
+    if fix_string_mismatch_button - previous_button_clicks['string_mismatch'] == 1: #then it has been clicked
+        previous_button_clicks['string_mismatch'] += 1
+        changed = dq_improvements.fix_string_mismatch(df_current, stored_dfs['df_string_mismatch'], string_mismatch_dropdown_value)
+        changed_data.extend(changed)
+
+    if fix_special_characters_button - previous_button_clicks['special_characters'] == 1: #then it has been clicked
+        previous_button_clicks['special_characters'] += 1
+        changed = dq_improvements.fix_special_characters(df_current, stored_dfs['df_special_characters'], fix_special_characters_input)
+        changed_data.extend(changed)
+
+
+    if previous is not None:
+        if active_item == 'corrections' and df_current.empty:  # then the last item of the datable was removed using clicking
+            deleted_index = df_previous.loc[0, 'Original Index']
+            deleted_indices.append(deleted_index)
+            return deleted_indices, deleted_columns, changed_data, previous_button_clicks
+
+        common_indices = set(df_previous['Original Index']).intersection(set(df_current['Original Index']))
+        #compare previous to current data to find the changed cells and deleted rows
+        deleted_index = list(set(df_previous['Original Index']) - set(df_current['Original Index']))
+
+        #check whether something was deleted, and only one row (if more rows were 'deleted', this indicates a switch in accordionitem)
+        if deleted_index:
+            if len(deleted_index) == 1: #TODO: toevoegen and in indices van dictionary met issues
+                if deleted_index[0] in df_previous['Original Index'].values:
+                    deleted_indices.append(deleted_index)
+
+        df_current = df_current[df_current['Original Index'].isin(common_indices)]
+        if 'level_0' in df_current.columns:
+            df_current = df_current.drop(columns=['level_0'])
+        df_current.reset_index(inplace=True)
+        df_previous = df_previous[df_previous['Original Index'].isin(common_indices)]
+        if 'level_0' in df_previous.columns:
+            df_previous = df_previous.drop(columns=['level_0'])
+        df_previous.reset_index(inplace=True)
+
+
+        #if there are no deletions, check for changes
+        if not deleted_index:
+            diff_mask = (df_current != df_previous)
+            diff_df = df_current[diff_mask]
+            diff_series = diff_df.stack(dropna=True)
+            if len(diff_series) == 1:
+                # Iterate over the multi-index Series
+                for idx, new_val in diff_series.iteritems():
+                    row_idx, col_name = idx
+                    row_idx_new = df_current.loc[row_idx, 'Original Index']
+                    previous = df_previous.loc[row_idx, col_name]
+                    change = {
+                        "coordinates": (row_idx_new, col_name),
+                        "new": new_val}
+                        #"previous": previous}
+                    changed_data.append(change)
+
+        return deleted_indices, deleted_columns, changed_data, previous_button_clicks
+    else:
+        return deleted_indices, deleted_columns, changed_data, previous_button_clicks
+
+def update_dataframe(df, changes, deleted_indices, deleted_columns, filepath2):
+    #apply changes
+    for change in changes:
+        if not isinstance(change, str):
+            coordinates = change['coordinates']
+            new_val = change['new']
+            current_index = df.index[df['Original Index'] == coordinates[0]].item() #obtain the current index
+            df.at[current_index, coordinates[1]] = new_val
+
+    #flatten list of deleted indices
+    flattened_deleted_indices = [idx for sublist in deleted_indices for idx in (sublist if isinstance(sublist, list) else [sublist])]
+    flattened_deleted_indices = list(set(flattened_deleted_indices))
+    columns_to_drop = list(set(deleted_columns))
+
+    #check which values that should be deleted still exist in the Original Index column
+    mask = df['Original Index'].isin(flattened_deleted_indices)
+    selected_rows = df[mask]
+    indices_to_drop = list(selected_rows.index) #find the current index
+    if indices_to_drop:
+        df = df.drop(indices_to_drop)
+
+    for column in columns_to_drop:
+        if column in df.columns:
+            df = df.drop(columns=column)
+
+    if 'level_0' in df.columns:
+        df = df.drop(columns=['level_0'])
+
+    df = df.reset_index()
+
+    df.to_pickle(filepath2)
+    return df
+
+@app.callback(
+    Output('download', 'data'),
+    Input('export-button', 'n_clicks'),
+    [State('store-deleted-indices', 'data'),
+    State('store-deleted-columns', 'data'),
+     State('store-changed-data', 'data'),
+     State('stored-filepath2', 'data')]
+)
+def export_dataset(n, deleted_indices, deleted_columns,changed_data, filepath2):
+    if n:
+        df = fetch_data(filepath2)
+        df = update_dataframe(df, changed_data, deleted_indices, deleted_columns, filepath2)
+        for col in ['level_0', 'index', 'Original Index']:
+            if col in df.columns:
+                df = df.drop(columns=col)
+        return dcc.send_data_frame(df.to_excel, "cleaned_data.xlsx")
+
+
+
+@app.callback(
+    Output('delete-column-button', 'style'),
+    Output('column-dropdown', 'style'),
+    Output('delete-column-text', 'style'),
+    [Input('radioitems-deletions', 'value')]
+)
+def show_column_deletions(radio_deletions_selected):
+    if radio_deletions_selected == 'outliers' or radio_deletions_selected == 'duplicates':
+        return {"display": "none"}, {"display": "none"}, {"display": "none"}  # show button
+    else:
+        return {"display": "block"}, {"display": "block"}, {"display": "block"}  # hide button
+
+@app.callback(
+    Output('delete-duplicates-button', 'style'),
+    [Input('radioitems-deletions', 'value')]
+)
+def show_delete_duplicates_button(radio_corrections_selected):
+    if radio_corrections_selected == 'duplicates':
+        return {"display": "block"} # show button
+    else:
+        return {"display": "none"} # hide button
+
+@app.callback(
+    Output('delete-outliers-button', 'style'),
+    [Input('radioitems-deletions', 'value')]
+)
+def show_delete_outliers_button(radio_corrections_selected):
+    if radio_corrections_selected == 'outliers':
+        return {"display": "block"} # show button
+    else:
+        return {"display": "none"} # hide button
+# @app.callback(
+#     Output('cap-column-value-outliers-input', 'style'),
+#     Output('cap-column-value-outliers-button', 'style'),
+#     [Input('radioitems-corrections', 'value')]
+# )
+# def show_delete_column_value_outliers_button(radio_corrections_selected):
+#     if radio_corrections_selected == 'column-value-outliers':
+#         return {"display": "block"}, {"display": "block"} # show button
+#     else:
+#         return {"display": "none"}, {"display": "none"} # hide button
+
+
+@app.callback(
+    Output('string-mismatch-button-col', 'style'),
+    Output('string-mismatch-dropdown-col', 'style'),
+    [Input('radioitems-corrections', 'value')]
+)
+def show_string_mismatch_button(radio_corrections_selected):
+    if radio_corrections_selected == 'string-mismatch':
+        return {"display": "block"}, {"display": "block"} # show button
+    else:
+        return {"display": "none"}, {"display": "none"} # hide button
+
+
+@app.callback(
+    Output('fix-special-characters-input', 'style'),
+    Output('fix-special-characters-button', 'style'),
+    [Input('radioitems-corrections', 'value')]
+)
+def show_special_characters(radio_corrections_selected):
+    if radio_corrections_selected == 'special-characters':
+        return {"display": "block"}, {"display": "block"} # show button
+    else:
+        return {"display": "none"}, {"display": "none"} # hide button
+
+
+@app.callback(
+    Output('conflicting-labels-text', 'style'),
+    [Input('radioitems-corrections', 'value')]
+)
+def show_conflicting_labels_button(radio_corrections_selected):
+    if radio_corrections_selected == 'conflicting-labels':
+        return {"display": "block"} # show button
+    else:
+        return {"display": "none"} # hide button
+def fetch_data(filepath):
+    if os.path.exists(filepath):
+        # If the file already exists, load the DataFrame from the cache
+        df = pd.read_pickle(filepath)
+        return df
+
+def obtain_current_indices(df, original_indices):
+    mask = df['Original Index'].isin(original_indices)
+    selected_rows = df[mask]
+    current_indices = selected_rows.index.tolist()
+    return current_indices
+
+
+def fix_dataframes(df_string_mismatch, df_special_characters):
+    if 'Check notification' in list(df_string_mismatch.columns):
+        df_string_mismatch = pd.DataFrame({
+            'Base form': ['No string mismatches encountered'],
+            'Value': ['No string mismatches encountered'],
+        })
+
+    if 'Check notification' in list(df_special_characters.columns):
+        df_special_characters = pd.DataFrame({
+        'Most Common Special-Only Samples': ["'No special characters found'"]
+    })
+    return df_string_mismatch, df_special_characters
 
 if __name__ == '__main__':
     app.run_server(host='127.0.0.1', port='8050', debug=False)
