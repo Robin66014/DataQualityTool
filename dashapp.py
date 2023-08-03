@@ -18,6 +18,7 @@ import label_purity
 import plot_and_transform_functions
 import dq_improvements
 import os
+import nltk
 import logging
 from dash.exceptions import PreventUpdate
 #silence unneccesary warnings
@@ -37,9 +38,16 @@ button_style = {'background-color': 'blue',
                     'margin-top': '50px',
                     'margin-left': '50px'}
 
+try: #somehow nltk does not by default install the stopwords module, so do it if users do not have it
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
+
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
 current_directory = os.path.dirname(os.path.realpath('dashapp.py'))
 cache_dir = os.path.join(current_directory, 'cached_files')
+
+
 
 app.title = "Data Quality Analyzer"
 #app layout
