@@ -338,9 +338,19 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         result_string = result_string.upper()
 
         return html.Div([  # Data issue / check results section
-            html.H3('Profiling report and issue overview', style={'textAlign': 'center'}),
-            html.P('This section contains a profling report showing important information,'
-                   ' regarding ML issues found in the dataset. In addition, the executive summary of your dataset is displayed.', style={'textAlign': 'center'}),
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Button("1", color="secondary", outline=True, className="font-weight-bold",
+                                       style={'fontSize': '20px', 'padding': '10px', 'width': '50px'})),
+                    dbc.Col([
+                        html.H3('Profiling report and issue overview', style={'textAlign': 'center', "margin-right": "50px"}),
+                        html.P('This section contains a profling report showing important information,'
+                               ' regarding ML issues found in the dataset. In addition, the executive summary of your dataset is displayed.',
+                               style={'textAlign': 'center', "margin-right": "50px"}),
+                    ], width=11, align='center'),
+                ],
+                align="center", justify="center"
+            ),
             dbc.Container([
                 dbc.Alert([
                     html.H4("Executive summary", className="alert-heading", style={'textAlign': 'center'}),
@@ -352,8 +362,18 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
             }),
             dcc.Markdown(result_string),
             html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),
-            html.H3('Data quality checks', style={'textAlign': 'center'}),
-            html.P('This section contains a detailed analysis of possible data quality issues in your dataset', style={'textAlign': 'center'}),
+            dbc.Row(
+                [
+                    dbc.Col(dbc.Button("2", color="secondary", outline=True, className="font-weight-bold",
+                                       style={'fontSize': '20px', 'padding': '10px', 'width': '50px'})),
+                    dbc.Col([
+                        html.H3('Data quality checks', style={'textAlign': 'center', "margin-right": "250px"}),
+                        html.P('This section contains a detailed analysis of possible data quality issues in your dataset.',
+                               style={'textAlign': 'center', "margin-right": "250px"}),
+                    ], width=10, align='center'),
+                ],
+                justify="around"
+            ),
             dbc.Accordion(children=[
                               dbc.AccordionItem(
                                   [
@@ -522,11 +542,22 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
         dq_checks_overview(calculated_scores, DQ_label, settings_dict, executive_summary),
         dcc.Store(id='mixed_dtypes_storage', data=mixed_dtypes_dict, storage_type='memory'),  # save to obtain df later on
         html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),  # horizontal line
-        html.H3('Additional checks', style={'textAlign': 'center'}),
-        html.P('Press the "Run additional checks" button to detect potential label errors using Cleanlab'
-               ' & to perform a baseline performance assessment by training three ML models on your dataset. Note that these check may take a while to run.', style={'textAlign': 'center'}),
+        dbc.Row(
+            [
+                dbc.Col(dbc.Col(dbc.Button("4", color="secondary", outline=True, className="font-weight-bold",
+                                       style={'fontSize': '20px', 'padding': '10px', 'width': '50px'}))),
+                dbc.Col([
+                    html.H3('Additional checks', style={'textAlign': 'center', "margin-right": "300px"}),
+                    html.P(
+                        'Press the "Run additional checks" button to detect potential label errors using Cleanlab'
+               ' & to perform a baseline performance assessment by training three ML models on your dataset. Note that these check may take a while to run.',
+                        style={'textAlign': 'center', "margin-right": "300px"}),
+                ], width=10, align='center'),
+            ],
+            align="center", justify="center"
+        ),
         #section for check 7 & 19
-        html.Div(dbc.Button('Run additional checks', id='run-long-running-time-checks-button', n_clicks=0, color='primary'), style={"display": "flex", "justify-content": "center", "align-items": "center", "height": "100%"}),
+        html.Div(dbc.Button('Run additional checks', id='run-long-running-time-checks-button', n_clicks=0, color='primary'), style={"display": "flex", "justify-content": "center", "align-items": "center", "height": "100%", "margin-left": "10px"}),
         html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),
         html.Div(dcc.Loading(children=html.Div(id='long_running_time_accordion'), type='circle')),
             dcc.Store(id='store-dq_issues_dict', data=dq_issues_dict),
@@ -783,9 +814,20 @@ def dq_checks_overview(check_results, DQ_label, settings_dict, executive_summary
 
     return html.Div(
         [html.Hr(style={'borderWidth': '10px', 'borderColor': 'black'}),
-         html.H3('Data quality check results overview & DQ label', style={'textAlign': 'center'}),
-         html.P('The bars underneath give a short summary about your check results. Green means that the check is passed, red means that the check is failed,'
-                ' and yellow indicates a warning. The yellow scores are not taken into account in the calculation of the  data quality label.', style={'textAlign': 'center'}),
+         dbc.Row(
+             [
+                 dbc.Col(dbc.Button("3", color="secondary", outline=True, className="font-weight-bold",
+                                    style={'fontSize': '20px', 'padding': '10px', 'width': '50px'})),
+                 dbc.Col([
+                     html.H3('Data quality check results overview & DQ label', style={'textAlign': 'center', "margin-right": "150px"}),
+                     html.P(
+                         'The bars display the degree in which the checks are passed/failed. Green means check is passed, red means check is failed,'
+                ' and yellow indicates a warning. The yellow scores are not taken into account in the calculation of the data quality label.',
+                         style={'textAlign': 'center', "margin-right": "150px"}),
+                 ], width=10, align='center'),
+             ],
+             justify="around"
+         ),
          dbc.Row([
             dbc.Col(dbc.Progress(value=check_results["missing_values"], label=f"{check_results['missing_values']}%",
                          color=f"{check_results['missing_values_color']}", className="mb-3")),
@@ -954,10 +996,23 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
             impute_type_for_column[col] = 'do not impute' #motivate users to think of an appropriate method themselves
     impute_type_for_column = pd.DataFrame(impute_type_for_column, index=[0])
 
-    return html.Div([html.H3('Clean your dataset', style={'textAlign': 'center'}),
-        html.P('Accept & apply the recommended fixes with just a few clicks! Open one of the items below and the datatable '
-               'will update accordingly. The datatable can be edited, and after you are finished cleaning your data, press "EXPORT CLEANED DATA" to download the cleaned data.'
-               ' No data in the datatable? Then there is nothing to fix for that issue!', style={'textAlign': 'center'}),
+    return html.Div([
+        dbc.Row(
+            [
+                dbc.Col(dbc.Col(dbc.Button("5", color="secondary", outline=True, className="font-weight-bold",
+                                       style={'fontSize': '20px', 'padding': '10px', 'width': '50px'}))),
+                dbc.Col([
+                    html.H3('Clean your dataset', style={'textAlign': 'center', "margin-right": "300px"}),
+                    html.P(
+                        'Accept & apply the recommended fixes with just a few clicks! Open one of the items below and the datatable '
+               'will update accordingly. The datatable can be edited, and after you are finished cleaning your data, press "EXPORT CLEANED DATA" '
+                        'to download the cleaned data.'
+               ' No data in the datatable? Then there is nothing to fix for that issue!',
+                        style={'textAlign': 'center', "margin-right": "200px"}),
+                ], width=10, align='center'),
+            ],
+            justify="around"
+        ),
         html.Div(id='hidden-div-duplicates', style={'display': 'none'}),
      html.Div(id='hidden-div-outliers', style={'display': 'none'}),
     dcc.Store(id='stored-filepath2', data=filepath2, storage_type='memory'),
