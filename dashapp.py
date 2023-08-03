@@ -1419,8 +1419,10 @@ def update_dataframe(df, changes, deleted_indices, deleted_columns, filepath2):
         if not isinstance(change, str):
             coordinates = change['coordinates']
             new_val = change['new']
-            current_index = df.index[df['Original Index'] == coordinates[0]].item() #obtain the current index
-            df.at[current_index, coordinates[1]] = new_val
+            orig_index = df.index[df['Original Index'] == coordinates[0]]
+            if not orig_index.empty:
+                current_index = orig_index.item() #obtain the current index
+                df.at[current_index, coordinates[1]] = new_val
 
     #flatten list of deleted indices
     flattened_deleted_indices = [idx for sublist in deleted_indices for idx in (sublist if isinstance(sublist, list) else [sublist])]
