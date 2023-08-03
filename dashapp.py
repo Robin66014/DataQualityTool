@@ -1050,7 +1050,7 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
                         dbc.Button("Impute missing values", id="impute-missing-values-button", color="danger", className="mr-1", n_clicks=0),
                         html.P('INFO: Imputations will only become visible in the datatable when switching tabs.')
                                 ],
-                    title="Missing value imputation ({})".format('1/5'),
+                    title="Missing value imputation ({})".format(len(dq_issues_dict['missing_values'])),
                     item_id="imputation",
                 ),
                 dbc.AccordionItem(
@@ -1099,7 +1099,7 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
                         ])
 
                     ],
-                    title="Recommended deletions ({})".format('2/5'),
+                    title="Recommended deletions ({})".format(len(dq_issues_dict['duplicate_instances']) + len(dq_issues_dict['outlier_instances'])),
                     item_id="deletions",
                 ),
                 dbc.AccordionItem(
@@ -1146,7 +1146,8 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
 
 
                             ],
-                    title="Recommended corrections ({})".format('3/5'),
+                    title="Recommended corrections ({})".format(len(dq_issues_dict['string_mismatch'])
+                                                                + len(dq_issues_dict['special_characters']) + len(dq_issues_dict['conflicting_labels'])),
                     item_id="corrections",
                 ),
             ],
