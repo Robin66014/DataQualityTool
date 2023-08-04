@@ -200,7 +200,7 @@ def calculate_dataset_nutrition_label(df, check_results, settings_dict):
                 class_imbalance_df = check_results['df_class_imbalance']
                 max_value = float(class_imbalance_df.max().max())
                 min_value = float(class_imbalance_df.min().min())
-                if round(min_value, 5) == 0:
+                if max_value == 0:
                     ratio_min_max = 0
                 else:
                     ratio_min_max = round((min_value / max_value), 4)
