@@ -7,11 +7,10 @@ Accepted file types: .csv, .arff, .xls, .xlsx, .parquet
 
 Working of the tool (in web app):
 1. Upload your data file 
-2. Adjust (if necessary) your column data types that were automatically inferred 
-3. select in the drop-down menu your target column
-4. Press 'Run checks', your data quality report will now be created
-5. Optional: perform a bias analysis yourself
-6. Press 'Run additional checks', now potential label errors will be searched for and a baseline performance assessment is given
+2. Adjust (if necessary) your column data types that were automatically inferred & in the drop-down menu select your target column
+3. Press 'Run checks', your data quality report will now be created
+4. Press 'Run additional checks', now potential label errors will be searched for and a baseline performance assessment is given. Optional: perform a bias analysis yourself\
+5. Accept & apply the recommended data quality remediations with just a few clicks to improve your dataset!
 
 
 # How to get the tool running:
