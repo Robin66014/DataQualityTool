@@ -8,39 +8,30 @@ def impute_missing_values(df, dtypes, imputation_methods):
     df_previous = df.copy()
     imputation_methods = imputation_methods[0] #get the dict out of the list
     for column in list(dtypes.keys()):
-        if column not in df.columns or df[column].empty: #then it has been deleted before or the whole column is empty and we cant impute
-            continue
-        if dtypes[column] == 'categorical' or dtypes[column] == 'boolean':
-            if imputation_methods[column] == 'most frequent':
-                df[column].fillna(df[column].mode()[0], inplace=True)
-            elif imputation_methods[column] == 'do not impute':
-                print('No imputation performed for column {}'.format(column))
-            elif imputation_methods[column] in ['mean', 'median']:
-                if is_numeric_dtype(df[column]): #can happen that sortinghat identifies a numerical column as catgorical due to the
-                    # low nr of distinct values, we should then notify the user about his imputation choice
-                    if imputation_methods[column] == 'mean':
-                        df[column].fillna(df[column].mean(), inplace=True)
-                        print('Column {} imputed using mean strategy, but "most frequent" is recommended as it is a most probably'
-                              ' a categorical column with numeric values.'.format(column))
-                    elif imputation_methods[column] == 'median':
-                        df[column].fillna(df[column].median(), inplace=True)
-                        print('Column {} imputed using median strategy, but "most frequent" is recommended as it is a most probably'
-                              ' a categorical column with numeric values.'.format(column))
-                else:
-                    print("Invalid imputation strategy for column {}: use 'most frequent' instead. "
-                      "The missing values in this column will not be imputed.".format(column))
+        try:
+            if column not in df.columns or df[column].empty: #then it has been deleted before or the whole column is empty and we cant impute
+                continue
+            if dtypes[column] == 'categorical' or dtypes[column] == 'boolean':
+                if imputation_methods[column] == 'most frequent':
+                    df[column].fillna(df[column].mode()[0], inplace=True)
+                elif imputation_methods[column] == 'do not impute':
+                    print('No imputation performed for column {}'.format(column))
+                elif imputation_methods[column] in ['mean', 'median']:
+                    if is_numeric_dtype(df[column]): #can happen that sortinghat identifies a numerical column as catgorical due to the
+                        # low nr of distinct values, we should then notify the user about his imputation choice
+                        if imputation_methods[column] == 'mean':
+                            df[column].fillna(df[column].mean(), inplace=True)
+                            print('Column {} imputed using mean strategy, but "most frequent" is recommended as it is a most probably'
+                                  ' a categorical column with numeric values.'.format(column))
+                        elif imputation_methods[column] == 'median':
+                            df[column].fillna(df[column].median(), inplace=True)
+                            print('Column {} imputed using median strategy, but "most frequent" is recommended as it is a most probably'
+                                  ' a categorical column with numeric values.'.format(column))
+                    else:
+                        print("Invalid imputation strategy for column {}: use 'most frequent' instead. "
+                          "The missing values in this column will not be imputed.".format(column))
 
-        elif dtypes[column] == 'floating' or dtypes[column] == 'integer' or dtypes[column] == 'numeric':
-            if imputation_methods[column] == 'most frequent':
-                df[column].fillna(df[column].mode()[0], inplace=True)
-            elif imputation_methods[column] == 'mean':
-                df[column].fillna(df[column].mean(), inplace=True)
-            elif imputation_methods[column] == 'median':
-                df[column].fillna(df[column].median(), inplace=True)
-            elif imputation_methods[column] == 'do not impute':
-                print('No imputation performed for column {}'.format(column))
-        else: #other data types than numeric or categorical
-            try:
+            elif dtypes[column] == 'floating' or dtypes[column] == 'integer' or dtypes[column] == 'numeric':
                 if imputation_methods[column] == 'most frequent':
                     df[column].fillna(df[column].mode()[0], inplace=True)
                 elif imputation_methods[column] == 'mean':
@@ -49,9 +40,17 @@ def impute_missing_values(df, dtypes, imputation_methods):
                     df[column].fillna(df[column].median(), inplace=True)
                 elif imputation_methods[column] == 'do not impute':
                     print('No imputation performed for column {}'.format(column))
-            except Exception as e:
-                print(e)
-                print('Error occured with column {}. Column will not be imputed'.format(column))
+            else: #other data types than numeric or categorical
+                if imputation_methods[column] == 'most frequent':
+                    df[column].fillna(df[column].mode()[0], inplace=True)
+                elif imputation_methods[column] == 'mean':
+                    df[column].fillna(df[column].mean(), inplace=True)
+                elif imputation_methods[column] == 'median':
+                    df[column].fillna(df[column].median(), inplace=True)
+                elif imputation_methods[column] == 'do not impute':
+                    print('No imputation performed for column {}'.format(column))
+        except Exception as e:
+            print('Error occurred while imputing column {}, column was not imputed. Error message: {}'.format(column, str(e)))
 
 
     changed_data = []
@@ -124,8 +123,6 @@ def fix_special_characters(df, df_special_characters, replacement_value):
     unique_values = list(set(samples_split))
 
     # unique_values = set(value.strip("' ") for s in df_special_characters['Most Common Special-Only Samples'] for value in s.split(','))
-    print('@@@unique values', unique_values)
-    print('@@@replacement_value', replacement_value)
     df = df.replace(unique_values, replacement_value)
 
     changed_data = []
