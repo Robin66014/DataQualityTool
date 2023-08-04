@@ -4,6 +4,7 @@ from pandas.api.types import is_numeric_dtype
 import numpy as np
 
 def impute_missing_values(df, dtypes, imputation_methods):
+    """"Impute missing values function. User can adjst the imputation method per column"""
     df_previous = df.copy()
     imputation_methods = imputation_methods[0] #get the dict out of the list
     for column in list(dtypes.keys()):
@@ -57,7 +58,7 @@ def impute_missing_values(df, dtypes, imputation_methods):
     diff_mask = (df != df_previous)
     diff_df = df[diff_mask]
     diff_series = diff_df.stack(dropna=True)
-    # Iterate over the multi-index Series
+    #iterate over series
     for idx, new_val in diff_series.iteritems():
         row_idx, col_name = idx
         row_idx_new = df.loc[row_idx, 'Original Index']
@@ -74,6 +75,7 @@ def impute_missing_values(df, dtypes, imputation_methods):
 
 
 def fix_string_mismatch(df, df_string_mismatch, value_to_replace):
+    """"string mismatch corrections. Change all variants to base form"""
 
     df_previous = df
     result = {}
@@ -111,6 +113,7 @@ def fix_string_mismatch(df, df_string_mismatch, value_to_replace):
 
 
 def fix_special_characters(df, df_special_characters, replacement_value):
+    """"string mismatch corrections. Change all special character only samples to a user-specifiable value"""
     df_previous = df
     #obtain unique string values with only special charcters
     #get all special characters
@@ -145,6 +148,7 @@ def fix_special_characters(df, df_special_characters, replacement_value):
 
 
 def obtain_indices_with_issues(df, check_results, settings_dict):
+    """"for displaying the relevant (problematic) rows in the datatable, we must retreive their indices"""
     dq_issue_indices = {}
     dq_issue_indices['redundant_columns'] = []
     for check_res in check_results:
@@ -238,7 +242,6 @@ def obtain_indices_with_issues(df, check_results, settings_dict):
                         high_corr_cols.add(row)
                         high_corr_cols.add(col)
 
-            high_corr_cols = list(high_corr_cols)
 
         elif check_res == 'df_conflicting_labels': #MODERATE ISSUE
             if 'Check notification' in list(check_results[check_res].columns):

@@ -27,8 +27,10 @@ def class_imbalance(dataset):
     #convert deepchecks result to float
     max_value = float(resultDF.max().max())
     min_value = float(resultDF.min().min())
-    ratio_min_max = min_value / max_value
-    ratio_min_max = round((min_value / max_value), 2)
+    if round(min_value,5) == 0:
+        ratio_min_max = 0
+    else:
+        ratio_min_max = round((min_value / max_value), 2)
     #if ratio is less than 1 to 100 between most infrequent and most frequent class, report this as a potential problem
     if ratio_min_max <= 0.01:
         dq_issue_report_string = f'Highly imbalanced classes with ratio {ratio_min_max}, check whether this forms a problem in your context' \

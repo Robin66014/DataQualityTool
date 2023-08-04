@@ -1,16 +1,10 @@
 import nltk
-try:  # somehow nltk does not by default install the stopwords module, so do it if users do not have it
-    nltk.data.find('corpora/corpus')
-except LookupError:
-    nltk.download('corpus')
-try: #somehow nltk does not by default install the stopwords module, so do it if users do not have it
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
-try:  # somehow nltk does not by default install the stopwords module, so do it if users do not have it
-    nltk.data.find('corpora/punkt')
-except LookupError:
-    nltk.download('punkt')
+corpora =['corpus', 'stopwords', 'punkt']
+for corpus in corpora: #nltk module needs additional packages in old version
+    try:
+        nltk.data.find(f'corpora/{corpus}')
+    except LookupError:
+        nltk.download(corpus)
 import pandas as pd
 import deepchecks
 import dash
@@ -1334,7 +1328,7 @@ def store_datatable_edits(previous, current, impute_missing_values_button, del_d
                           deleted_indices, deleted_columns,
                           changed_data, radioitem_deletions, dq_issues_dict, column_dropdown_value, previous_button_clicks,
                           string_mismatch_dropdown_value, fix_special_characters_input, dtypes, imputation_methods, stored_dfs, active_item, filepath2):
-    """"Callback to track all the deletions and changes made to the data"""
+    """"Callback to track all the deletions and changes made to the data, also fired on button clicks"""
     df_current, df_previous = pd.DataFrame(data=current), pd.DataFrame(data=previous)
 
     if df_current.empty: #then either the last row was removed or a button was pressed to delete all
@@ -1464,6 +1458,7 @@ def update_dataframe(df, changes, deleted_indices, deleted_columns, filepath2):
      State('stored-filepath2', 'data')]
 )
 def export_dataset(n, deleted_indices, deleted_columns,changed_data, filepath2):
+    """"Callback that is fired when the user clicks the EXPORT CLEANED DATA button"""
     if n:
         df = fetch_data(filepath2)
         df = update_dataframe(df, changed_data, deleted_indices, deleted_columns, filepath2)
@@ -1473,7 +1468,7 @@ def export_dataset(n, deleted_indices, deleted_columns,changed_data, filepath2):
         return dcc.send_data_frame(df.to_excel, "cleaned_data.xlsx")
 
 
-
+#ALL CALLBACKS BELOW ARE
 @app.callback(
     Output('delete-column-button', 'style'),
     Output('column-dropdown', 'style'),
@@ -1505,16 +1500,6 @@ def show_delete_outliers_button(radio_corrections_selected):
         return {"display": "block"} # show button
     else:
         return {"display": "none"} # hide button
-# @app.callback(
-#     Output('cap-column-value-outliers-input', 'style'),
-#     Output('cap-column-value-outliers-button', 'style'),
-#     [Input('radioitems-corrections', 'value')]
-# )
-# def show_delete_column_value_outliers_button(radio_corrections_selected):
-#     if radio_corrections_selected == 'column-value-outliers':
-#         return {"display": "block"}, {"display": "block"} # show button
-#     else:
-#         return {"display": "none"}, {"display": "none"} # hide button
 
 
 @app.callback(
@@ -1556,7 +1541,9 @@ def fetch_data(filepath):
         df = pd.read_pickle(filepath)
         return df
 
+
 def obtain_current_indices(df, original_indices):
+    """"function obtain the current indices using the original index columns"""
     mask = df['Original Index'].isin(original_indices)
     selected_rows = df[mask]
     current_indices = selected_rows.index.tolist()
@@ -1564,6 +1551,7 @@ def obtain_current_indices(df, original_indices):
 
 
 def fix_dataframes(df_string_mismatch, df_special_characters):
+    """"function to change the form of the string mismatch and special characters df in case they're empty"""
     if 'Check notification' in list(df_string_mismatch.columns):
         df_string_mismatch = pd.DataFrame({
             'Base form': ['No string mismatches encountered'],
