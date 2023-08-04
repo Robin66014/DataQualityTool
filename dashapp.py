@@ -1,8 +1,16 @@
 import nltk
+try:  # somehow nltk does not by default install the stopwords module, so do it if users do not have it
+    nltk.data.find('corpora/corpus')
+except LookupError:
+    nltk.download('corpus')
 try: #somehow nltk does not by default install the stopwords module, so do it if users do not have it
     nltk.data.find('corpora/stopwords')
 except LookupError:
     nltk.download('stopwords')
+try:  # somehow nltk does not by default install the stopwords module, so do it if users do not have it
+    nltk.data.find('corpora/punkt')
+except LookupError:
+    nltk.download('punkt')
 import pandas as pd
 import deepchecks
 import dash
