@@ -1,3 +1,8 @@
+import nltk
+try: #somehow nltk does not by default install the stopwords module, so do it if users do not have it
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords')
 import pandas as pd
 import deepchecks
 import dash
@@ -18,7 +23,7 @@ import label_purity
 import plot_and_transform_functions
 import dq_improvements
 import os
-import nltk
+
 import logging
 from dash.exceptions import PreventUpdate
 #silence unneccesary warnings
@@ -38,10 +43,7 @@ button_style = {'background-color': 'blue',
                     'margin-top': '50px',
                     'margin-left': '50px'}
 
-try: #somehow nltk does not by default install the stopwords module, so do it if users do not have it
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('stopwords')
+
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets, suppress_callback_exceptions=True)
 current_directory = os.path.dirname(os.path.realpath('dashapp.py'))
@@ -500,7 +502,7 @@ def run_checks(n_clicks, filepath, dtypes, target, missing, duplicates, outliers
                                               style={'textAlign': 'center'}),
                                       html.P("computes the correlation between each feature pair;"
                                              " Methods to calculate for each feature label pair:"
-                                             " numerical-numerical: Pearson’s correlation coefficient;"
+                                             " numerical-numerical: Spearman’s rank correlation coefficient;"
                                              " numerical-categorical: Correlation ratio;"
                                              " categorical-categorical: Symmetric Theil’s U.",
                                              style={'textAlign': 'center'}),
@@ -983,6 +985,7 @@ def advanced_settings_accordion():
 ###################################################AUTOMATED CLEANING SECTION###############################################################
 ############################################################################################################################################
 def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters, dtypes, dq_issues_dict):
+    """"Function that contains the layout of the data cleaning section"""
     data = fetch_data(filepath)
     data_with_index = data.reset_index().rename(columns={'index': 'Original Index'}) #add original index column to keep track of original positioning
     filepath2 = filepath[:-4] +'_cleaned.pkl' #create a new file to not hinder the 'additional checks' when edits are made to the dataframe
@@ -1004,7 +1007,7 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
             impute_type_for_column[col] = 'do not impute' #motivate users to think of an appropriate method themselves
     impute_type_for_column = pd.DataFrame(impute_type_for_column, index=[0])
 
-    return html.Div([
+    return html.Div([#dash stuff
         dbc.Row(
             [
                 dbc.Col(dbc.Col(dbc.Button("5", color="secondary", outline=True, className="font-weight-bold",
@@ -1115,13 +1118,7 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
                             id="radioitems-corrections"
                         ),
                             html.Hr(),
-                        # dbc.Input(id="cap-column-value-outliers-input", inputmode='numeric', value="5000",
-                        #           style={"display": "block", "width": "16.66%"}),
-                        # dbc.Button("cap column value outliers", id="cap-column-value-outliers-button", color="danger",
-                        #            className="mr-1", n_clicks=0,
-                        #            style={"display": "block", "width": "16.66%"}),
 
-                        # string mismatches button
                         dbc.Row([dbc.Col(
                                 dcc.Dropdown(
                                     id='string-mismatch-dropdown',
@@ -1161,7 +1158,7 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
             data=data_with_index.to_dict('records'),
             editable=True,
             row_deletable=True,
-            page_action='native',
+            page_action='native', #Changed later on to custom, to not show all data at once for speed purposes
             page_current=0,
             page_size = 10,
             style_table={
@@ -1192,6 +1189,8 @@ def layout_HITL_remediations(filepath, df_string_mismatch, df_special_characters
 def toggle_accordion(active_key, radio_deletions_selected, radio_corrections_selected, del_duplicates_button, del_outliers_button,
                      page_current, page_size,
                      filepath2, deleted_indices, deleted_columns, changed_data, dq_issues_dict):
+    """"Callback triggered when switching the type of cleaning (imputation, deletion, correction) and displays the
+    rows of the dataset where the issues occurred."""
     df = fetch_data(filepath2)
     df = update_dataframe(df, changed_data, deleted_indices, deleted_columns, filepath2) #apply changes to df when switch in accordion occurs
     if active_key == 'imputation':
@@ -1319,7 +1318,7 @@ def toggle_accordion(active_key, radio_deletions_selected, radio_corrections_sel
     State('store-dataframes', 'data'),
     State("accordion", "active_item"),
     State('stored-filepath2', 'data'),
-     ] #TODO: toevoegen dict met issues as state om huidige bug te voorkomen
+     ]
 )
 def store_datatable_edits(previous, current, impute_missing_values_button, del_duplicates_button, del_outliers_button, del_column_button,
                           fix_string_mismatch_button, fix_special_characters_button,
@@ -1327,10 +1326,10 @@ def store_datatable_edits(previous, current, impute_missing_values_button, del_d
                           deleted_indices, deleted_columns,
                           changed_data, radioitem_deletions, dq_issues_dict, column_dropdown_value, previous_button_clicks,
                           string_mismatch_dropdown_value, fix_special_characters_input, dtypes, imputation_methods, stored_dfs, active_item, filepath2):
-
+    """"Callback to track all the deletions and changes made to the data"""
     df_current, df_previous = pd.DataFrame(data=current), pd.DataFrame(data=previous)
 
-    if df_current.empty:
+    if df_current.empty: #then either the last row was removed or a button was pressed to delete all
         if active_item == 'deletions':
             if radioitem_deletions == 'duplicates':  # then the last item was removed in the datatable was removed
                 deleted_indices.append(dq_issues_dict['duplicate_instances'])
@@ -1383,7 +1382,7 @@ def store_datatable_edits(previous, current, impute_missing_values_button, del_d
                     deleted_indices.append(deleted_index)
 
         df_current = df_current[df_current['Original Index'].isin(common_indices)]
-        if 'level_0' in df_current.columns:
+        if 'level_0' in df_current.columns: #can be added due to resetting of the indices
             df_current = df_current.drop(columns=['level_0'])
         df_current.reset_index(inplace=True)
         df_previous = df_previous[df_previous['Original Index'].isin(common_indices)]
@@ -1414,7 +1413,7 @@ def store_datatable_edits(previous, current, impute_missing_values_button, del_d
         return deleted_indices, deleted_columns, changed_data, previous_button_clicks
 
 def update_dataframe(df, changes, deleted_indices, deleted_columns, filepath2):
-    #apply changes
+    #apply changes made to the dataframe
     for change in changes:
         if not isinstance(change, str):
             coordinates = change['coordinates']
